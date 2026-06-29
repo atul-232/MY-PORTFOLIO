@@ -184,6 +184,8 @@ function populatePortfolio(data) {
 
   // Populate Projects
   populateProjects(data.projects || []);
+  populateCertifications(data.certificates || []);
+  populateAchievements(data.achievements || []);
 
   // Populate Timelines
   populateTimeline('experience-timeline', data.experience || []);
@@ -506,4 +508,78 @@ function setBar(id, count, max) {
     const pct = Math.min(100, Math.round((count / max) * 100));
     el.style.width = pct + '%';
   }
+  }
+}
+
+// Populate Certifications
+function populateCertifications(certs) {
+  const grid = document.getElementById('certs-grid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  if (certs.length === 0) {
+    grid.innerHTML = '<p class="text-center w-full">No certifications added yet.</p>';
+    return;
+  }
+  certs.forEach(c => {
+    const card = document.createElement('div');
+    card.className = 'cert-card';
+    let iconHTML = '<i class="fa-solid fa-certificate"></i>';
+    if (c.image) iconHTML = `<img src="${c.image}" alt="${c.name}" style="width:100%;height:100%;object-fit:cover;border-radius:12px;">`;
+    let linkHTML = '';
+    if (c.credentialUrl && c.credentialUrl !== '#') {
+      linkHTML = `<a href="${c.credentialUrl}" target="_blank" class="cert-card-link"><i class="fa-solid fa-arrow-up-right-from-square" style="font-size:11px;"></i> View Credential</a>`;
+    }
+    card.innerHTML = `
+      <div class="cert-card-header">
+        <div class="cert-card-icon">${iconHTML}</div>
+        <div class="cert-card-body">
+          <h3>${c.name}</h3>
+          <span class="cert-org">${c.organization || ''}</span>
+        </div>
+      </div>
+      <div class="cert-card-meta">
+        <span class="cert-card-date"><i class="fa-regular fa-calendar"></i> ${c.date || ''}</span>
+        ${linkHTML}
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+// Populate Achievements
+function populateAchievements(achs) {
+  const grid = document.getElementById('achievements-grid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  if (achs.length === 0) {
+    grid.innerHTML = '<p class="text-center w-full">No achievements added yet.</p>';
+    return;
+  }
+  achs.forEach(a => {
+    const card = document.createElement('div');
+    card.className = 'ach-card';
+    let iconHTML = '<i class="fa-solid fa-trophy"></i>';
+    if (a.image) iconHTML = `<img src="${a.image}" alt="${a.title}" style="width:100%;height:100%;object-fit:cover;border-radius:12px;">`;
+    let descHTML = '';
+    if (a.description) descHTML = `<p class="ach-card-desc">${a.description}</p>`;
+    let linkHTML = '';
+    if (a.link && a.link !== '#') {
+      linkHTML = `<a href="${a.link}" target="_blank" class="ach-card-link"><i class="fa-solid fa-arrow-up-right-from-square" style="font-size:11px;"></i> View</a>`;
+    }
+    card.innerHTML = `
+      <div class="ach-card-header">
+        <div class="ach-card-icon">${iconHTML}</div>
+        <div class="ach-card-body">
+          <h3>${a.title}</h3>
+          <span class="ach-issuer">${a.issuer || ''}</span>
+        </div>
+      </div>
+      ${descHTML}
+      <div class="ach-card-meta">
+        <span class="ach-card-date"><i class="fa-regular fa-calendar"></i> ${a.date || ''}</span>
+        ${linkHTML}
+      </div>
+    `;
+    grid.appendChild(card);
+  });
 }

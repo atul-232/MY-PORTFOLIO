@@ -1690,6 +1690,14 @@ function renderCertificatesList() {
           <input type="text" class="cert-url-input" value="${c.credentialUrl || ''}" placeholder="Verification Link URL" oninput="markAsUnsaved()">
         </div>
       </div>
+      <div class="form-group-field" style="margin-top:10px;">
+        <label>IMAGE / LOGO URL (or upload)</label>
+        <div style="display:flex; gap:10px; align-items:center;">
+          <input type="text" class="cert-image-input" value="${c.image || ''}" placeholder="Paste image URL or upload" style="flex:1;" oninput="markAsUnsaved()">
+          <input type="file" class="cert-image-file" accept="image/*" style="display:none;" onchange="uploadCertImage(this, ${idx})">
+          <button type="button" class="btn btn-secondary btn-sm" onclick="this.previousElementSibling.click()" style="white-space:nowrap;"><i class="fa-solid fa-upload"></i> Upload</button>
+        </div>
+      </div>
     `;
     list.appendChild(card);
   });
@@ -1721,9 +1729,10 @@ function collectCertificatesList() {
     const organization = card.querySelector('.cert-org-input').value.trim();
     const date = card.querySelector('.cert-date-input').value.trim();
     const credentialUrl = card.querySelector('.cert-url-input').value.trim();
+    const image = card.querySelector('.cert-image-input').value.trim();
 
     if (name && organization) {
-      arr.push({ name, organization, date, credentialUrl });
+      arr.push({ name, organization, date, credentialUrl, image });
     }
   });
   return arr;
@@ -1759,13 +1768,27 @@ function renderAchievementsList() {
           <input type="text" class="ach-issuer-input" value="${a.issuer || ''}" required placeholder="Govt of India" oninput="markAsUnsaved()">
         </div>
       </div>
-      <div class="form-group-field" style="margin-top:10px;">
-        <label>DATE RECEIVED</label>
-        <input type="text" class="ach-date-input" value="${a.date || ''}" placeholder="Dec 2024" oninput="markAsUnsaved()">
+      <div class="contact-group-row" style="margin-top:10px;">
+        <div class="form-group-field">
+          <label>DATE RECEIVED</label>
+          <input type="text" class="ach-date-input" value="${a.date || ''}" placeholder="Dec 2024" oninput="markAsUnsaved()">
+        </div>
+        <div class="form-group-field">
+          <label>LINK URL (optional)</label>
+          <input type="text" class="ach-link-input" value="${a.link || ''}" placeholder="https://..." oninput="markAsUnsaved()">
+        </div>
       </div>
       <div class="form-group-field" style="margin-top:10px;">
         <label>AWARD DESCRIPTION</label>
         <textarea class="ach-desc-input" rows="2" placeholder="Details about selection..." oninput="markAsUnsaved()">${a.description || ''}</textarea>
+      </div>
+      <div class="form-group-field" style="margin-top:10px;">
+        <label>IMAGE URL (or upload)</label>
+        <div style="display:flex; gap:10px; align-items:center;">
+          <input type="text" class="ach-image-input" value="${a.image || ''}" placeholder="Paste image URL or upload" style="flex:1;" oninput="markAsUnsaved()">
+          <input type="file" class="ach-image-file" accept="image/*" style="display:none;" onchange="uploadAchImage(this, ${idx})">
+          <button type="button" class="btn btn-secondary btn-sm" onclick="this.previousElementSibling.click()" style="white-space:nowrap;"><i class="fa-solid fa-upload"></i> Upload</button>
+        </div>
       </div>
     `;
     list.appendChild(card);
@@ -1798,9 +1821,11 @@ function collectAchievementsList() {
     const issuer = card.querySelector('.ach-issuer-input').value.trim();
     const date = card.querySelector('.ach-date-input').value.trim();
     const description = card.querySelector('.ach-desc-input').value.trim();
+    const image = card.querySelector('.ach-image-input').value.trim();
+    const link = card.querySelector('.ach-link-input').value.trim();
 
     if (title && issuer) {
-      arr.push({ title, issuer, date, description });
+      arr.push({ title, issuer, date, description, image, link });
     }
   });
   return arr;
@@ -1972,4 +1997,48 @@ async function saveCompileDatabaseSilently() {
   } catch (err) {
     console.error('Silent save error:', err);
   }
+}
+
+// Upload cert image via base64
+async function uploadCertImage(fileInput, idx) {
+  const file = fileInput.files[0];
+  if (!file) return;
+  try {
+    const base64 = await convertFileToBase64(file);
+    const res = await fetch('/api/upload', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ fileName: file.name, fileType: 'projects', fileData: base64 })
+    });
+    const data = await res.json();
+    if (res.ok && data.fileUrl) {
+      const cards = document.querySelectorAll('.cert-item-card');
+      if (cards[idx]) {
+        cards[idx].querySelector('.cert-image-input').value = data.fileUrl;
+        markAsUnsaved();
+      }
+    } else { alert(data.error || 'Image upload failed.'); }
+  } catch { alert('Error uploading image.'); }
+}
+
+// Upload achievement image via base64
+async function uploadAchImage(fileInput, idx) {
+  const file = fileInput.files[0];
+  if (!file) return;
+  try {
+    const base64 = await convertFileToBase64(file);
+    const res = await fetch('/api/upload', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ fileName: file.name, fileType: 'projects', fileData: base64 })
+    });
+    const data = await res.json();
+    if (res.ok && data.fileUrl) {
+      const cards = document.querySelectorAll('.ach-item-card');
+      if (cards[idx]) {
+        cards[idx].querySelector('.ach-image-input').value = data.fileUrl;
+        markAsUnsaved();
+      }
+    } else { alert(data.error || 'Image upload failed.'); }
+  } catch { alert('Error uploading image.'); }
 }
