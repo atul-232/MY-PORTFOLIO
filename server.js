@@ -372,11 +372,16 @@ app.post('/api/analytics/action', authenticate, (req, res) => {
 app.get('/api/analytics/summary', authenticate, (req, res) => {
   try {
     const logs = JSON.parse(fs.readFileSync(VISITORS_FILE, 'utf8') || '[]');
-    const messages = JSON.parse(fs.readFileSync(MESSAGES_FILE, 'utf8') || '[]');
+    const messages = JSON.parse(fs.readFileSync(MESSAGES_FILE, 'utf8') || '{}');
     const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8') || '{}');
     const projects = data.projects || [];
     const now = new Date();
-    
+
+    // Respect ?days= param from date picker (0 = all time)
+    const days = parseInt(req.query.days) || 30;
+    const rangeStart = days > 0 ? new Date(now.getTime() - days * 24 * 60 * 60 * 1000) : new Date(0);
+    const prevStart = days > 0 ? new Date(now.getTime() - days * 2 * 24 * 60 * 60 * 1000) : new Date(0);
+
     const siteSettings = data.siteSettings || {};
     const analyticsBase = siteSettings.analyticsBase || { visitors: 0, views: 0 };
     
@@ -386,38 +391,35 @@ app.get('/api/analytics/summary', authenticate, (req, res) => {
     const totalVisitors = baseVisitors + logs.filter(l => l.type === 'visitor').length;
     const totalViews = baseViews + logs.filter(l => l.type === 'view').length;
 
-    // Calculate percentage change comparing [0-30 days ago] vs [30-60 days ago]
-    const thirtyDaysAgo = new Date(now);
-    thirtyDaysAgo.setDate(now.getDate() - 30);
-    const sixtyDaysAgo = new Date(now);
-    sixtyDaysAgo.setDate(now.getDate() - 60);
-
+    // Calculate percentage change comparing current range vs previous range
     const currVisitors = logs.filter(l => {
       const t = new Date(l.time);
-      return l.type === 'visitor' && t >= thirtyDaysAgo && t <= now;
+      return l.type === 'visitor' && t >= rangeStart && t <= now;
     }).length;
     const prevVisitors = logs.filter(l => {
       const t = new Date(l.time);
-      return l.type === 'visitor' && t >= sixtyDaysAgo && t < thirtyDaysAgo;
+      return l.type === 'visitor' && t >= prevStart && t < rangeStart;
     }).length;
 
     const currViews = logs.filter(l => {
       const t = new Date(l.time);
-      return l.type === 'view' && t >= thirtyDaysAgo && t <= now;
+      return l.type === 'view' && t >= rangeStart && t <= now;
     }).length;
     const prevViews = logs.filter(l => {
       const t = new Date(l.time);
-      return l.type === 'view' && t >= sixtyDaysAgo && t < thirtyDaysAgo;
+      return l.type === 'view' && t >= prevStart && t < rangeStart;
     }).length;
 
-    const currMsgs = messages.filter(m => {
+    const msgList = Array.isArray(messages) ? messages : [];
+    const currMsgs = msgList.filter(m => {
       const t = new Date(m.date);
-      return t >= thirtyDaysAgo && t <= now;
+      return t >= rangeStart && t <= now;
     }).length;
-    const prevMsgs = messages.filter(m => {
+    const prevMsgs = msgList.filter(m => {
       const t = new Date(m.date);
-      return t >= sixtyDaysAgo && t < thirtyDaysAgo;
+      return t >= prevStart && t < rangeStart;
     }).length;
+
 
     const getPercent = (curr, prev) => {
       if (prev === 0) return curr > 0 ? 100 : 0;

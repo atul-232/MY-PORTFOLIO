@@ -832,10 +832,48 @@ async function saveCompileDatabase() {
 
 // Render Dashboard Panel metrics, sparklines and analytical trends
 let analyticsChart = null;
+let currentDateRangeDays = 30; // default
 
-async function renderDashboardOverview() {
+function toggleDateDropdown() {
+  const menu = document.getElementById('date-dropdown-menu');
+  const chevron = document.getElementById('date-chevron');
+  const isOpen = menu.style.display === 'block';
+  menu.style.display = isOpen ? 'none' : 'block';
+  chevron.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+}
+
+function selectDateRange(event, days, label) {
+  event.stopPropagation(); // don't bubble to toggleDateDropdown
+  currentDateRangeDays = days;
+  document.getElementById('dashboard-date-range').textContent = label;
+
+  // Update active button
+  document.querySelectorAll('.date-range-option').forEach(btn => btn.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+
+  // Close dropdown
+  document.getElementById('date-dropdown-menu').style.display = 'none';
+  document.getElementById('date-chevron').style.transform = 'rotate(0deg)';
+
+  // Reload analytics with new range
+  renderDashboardOverview(days);
+}
+
+// Close dropdown if user clicks outside of it
+document.addEventListener('click', (e) => {
+  const dropdown = document.getElementById('date-dropdown-btn');
+  const menu = document.getElementById('date-dropdown-menu');
+  if (dropdown && menu && !dropdown.contains(e.target)) {
+    menu.style.display = 'none';
+    const chevron = document.getElementById('date-chevron');
+    if (chevron) chevron.style.transform = 'rotate(0deg)';
+  }
+});
+
+async function renderDashboardOverview(days = 30) {
   try {
-    const res = await fetch('/api/analytics/summary', {
+    const params = days > 0 ? `?days=${days}` : '';
+    const res = await fetch(`/api/analytics/summary${params}`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     if (!res.ok) throw new Error();
@@ -847,12 +885,14 @@ async function renderDashboardOverview() {
     document.getElementById('dash-card-messages').textContent = summary.totalMessages.toLocaleString();
     document.getElementById('dash-card-projects').textContent = summary.totalProjects.toLocaleString();
 
-    // Update dynamic calendar date range
-    const today = new Date();
-    const thirtyAgo = new Date();
-    thirtyAgo.setDate(today.getDate() - 30);
-    const rangeStr = `${thirtyAgo.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${today.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
-    document.getElementById('dashboard-date-range').textContent = rangeStr;
+    // Keep date range label in sync (only update if not already set by picker)
+    if (days === 30 && document.getElementById('dashboard-date-range').textContent === 'Last 30 Days') {
+      const today = new Date();
+      const from = new Date();
+      from.setDate(today.getDate() - 30);
+      document.getElementById('dashboard-date-range').textContent =
+        `${from.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${today.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
+    }
 
     // Helper to update trend display
     const updateTrendWidget = (metricKey, val) => {

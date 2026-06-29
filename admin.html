@@ -432,7 +432,25 @@
       align-items: center;
       gap: 10px;
       box-shadow: var(--shadow-card);
+      transition: all 0.2s ease;
     }
+    .date-dropdown:hover { border-color: var(--primary); }
+
+    .date-range-option {
+      display: block;
+      width: 100%;
+      padding: 11px 18px;
+      background: none;
+      border: none;
+      text-align: left;
+      font-family: var(--font-body);
+      font-size: 14px;
+      color: var(--text-sub);
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+    .date-range-option:hover { background: var(--bg); color: var(--primary); }
+    .date-range-option.active { color: var(--primary); font-weight: 600; background: rgba(124,92,255,0.06); }
 
     /* Summary Stats Grid */
     .dash-stats-grid {
@@ -1186,10 +1204,19 @@
               <h1>Welcome back, Atul! 👋</h1>
               <p>Here's what's happening with your portfolio today.</p>
             </div>
-            <div class="date-dropdown">
+            <div class="date-dropdown" id="date-dropdown-btn" onclick="toggleDateDropdown()" style="position:relative; cursor:pointer; user-select:none;">
               <i class="fa-regular fa-calendar"></i>
-              <span id="dashboard-date-range">May 29 - Jun 29, 2026</span>
-              <i class="fa-solid fa-chevron-down" style="font-size: 11px;"></i>
+              <span id="dashboard-date-range">Last 30 Days</span>
+              <i class="fa-solid fa-chevron-down" style="font-size: 11px;" id="date-chevron"></i>
+
+              <!-- Dropdown menu -->
+              <div id="date-dropdown-menu" style="display:none; position:absolute; top:calc(100% + 8px); right:0; background:var(--surface); border:1px solid var(--border); border-radius:12px; box-shadow:0 8px 32px rgba(0,0,0,0.12); min-width:180px; z-index:999; overflow:hidden;">
+                <button class="date-range-option active" data-days="7" onclick="selectDateRange(event, 7, 'Last 7 Days')">Last 7 Days</button>
+                <button class="date-range-option" data-days="30" onclick="selectDateRange(event, 30, 'Last 30 Days')">Last 30 Days</button>
+                <button class="date-range-option" data-days="90" onclick="selectDateRange(event, 90, 'Last 3 Months')">Last 3 Months</button>
+                <button class="date-range-option" data-days="365" onclick="selectDateRange(event, 365, 'This Year')">This Year</button>
+                <button class="date-range-option" data-days="0" onclick="selectDateRange(event, 0, 'All Time')">All Time</button>
+              </div>
             </div>
           </div>
 
