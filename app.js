@@ -258,23 +258,25 @@ function populateProjects(projects) {
     const mode = p.linkMode || 'both';
     let ctaHTML = '';
     
-    if (mode === 'both' || mode === 'demo') {
+    if ((mode === 'both' || mode === 'demo') && p.demoUrl) {
       ctaHTML += `
-        <a href="${p.demoUrl || '#'}" target="_blank" class="proj-link-item">
+        <a href="${p.demoUrl}" target="_blank" class="proj-link-item">
           <span>Live Demo</span> <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 12px;"></i>
         </a>`;
     } else if (mode === 'video') {
       const vidUrl = p.videoUrl || '';
-      ctaHTML += `
-        <a href="javascript:void(0)" onclick="playDemoVideo('${p.title.replace(/'/g, "\\'")}', '${vidUrl}')" class="proj-link-item" style="color: var(--primary);">
-          <span>Watch Video</span> <i class="fa-solid fa-play" style="font-size: 12px;"></i>
-        </a>`;
+      if (vidUrl) {
+        ctaHTML += `
+          <a href="javascript:void(0)" onclick="playDemoVideo('${p.title.replace(/'/g, "\\'")}', '${vidUrl}')" class="proj-link-item" style="color: var(--primary);">
+            <span>Watch Video</span> <i class="fa-solid fa-play" style="font-size: 12px;"></i>
+          </a>`;
+      }
     }
 
     let githubHTML = '';
-    if (mode === 'both' || mode === 'code' || mode === 'video') {
+    if ((mode === 'both' || mode === 'code' || mode === 'video') && p.githubUrl) {
       githubHTML += `
-        <a href="${p.githubUrl || '#'}" target="_blank" class="proj-github-btn" title="GitHub Code">
+        <a href="${p.githubUrl}" target="_blank" class="proj-github-btn" title="GitHub Code">
           <i class="fa-brands fa-github"></i>
         </a>`;
     }
