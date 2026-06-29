@@ -1,0 +1,241 @@
+{
+  "personal": {
+    "name": "Atul Pandey",
+    "title": "Full Stack Developer | ML Enthusiast | Problem Solver",
+    "bio": "I build scalable web applications and intelligent solutions that solve real-world problems. Passionate about clean code, user experience, and emerging technologies.",
+    "summary": "I am a dedicated developer focused on full stack development and machine learning systems. I combine front-end precision with robust back-end integrations.",
+    "image": "https://cdn-icons-png.flaticon.com/512/3135/3135715.png",
+    "resumeUrl": "#",
+    "location": "India",
+    "educationBrief": "B.Com (Hons)",
+    "email": "atul.pandey@example.com",
+    "phone": "",
+    "status": "Available for Internships",
+    "github": "https://github.com",
+    "linkedin": "https://linkedin.com",
+    "twitter": "https://twitter.com",
+    "leetcodeUsername": "F5121ynIyr",
+    "yearsOfLearning": "2+",
+    "projectsCompleted": "15+",
+    "technologiesMastered": "5+",
+    "dsaProblemsSolved": "100+"
+  },
+  "seo": {
+    "title": "Atul Pandey | Full Stack Developer & ML Enthusiast Portfolio",
+    "description": "Welcome to my portfolio! I am Atul Pandey, a Full Stack Developer and ML Enthusiast building dynamic, intelligent web applications."
+  },
+  "siteSettings": {
+    "theme": "light",
+    "integrations": {},
+    "analyticsBase": {
+      "visitors": 0,
+      "views": 0
+    }
+  },
+  "animation": {
+    "taglines": [
+      "a Software Engineer",
+      "a Full Stack Developer",
+      "an ML Enthusiast",
+      "a Problem Solver",
+      "building the future"
+    ],
+    "typeSpeed": 150,
+    "eraseSpeed": 80,
+    "pauseEnd": 1500,
+    "pauseNext": 500
+  },
+  "skills": [
+    {
+      "category": "Languages",
+      "list": [
+        "C++",
+        "JavaScript",
+        "Python",
+        "SQL",
+        "Java"
+      ]
+    },
+    {
+      "category": "Frontend",
+      "list": [
+        "HTML",
+        "CSS3",
+        "React",
+        "Tailwind CSS"
+      ]
+    },
+    {
+      "category": "Backend",
+      "list": [
+        "Node.js",
+        "Express.js",
+        "MySQL",
+        "MongoDB"
+      ]
+    },
+    {
+      "category": "Tools & Others",
+      "list": [
+        "Git",
+        "GitHub",
+        "VS Code",
+        "Postman",
+        "Figma"
+      ]
+    }
+  ],
+  "experience": [
+    {
+      "company": "TechLabs Inc.",
+      "role": "Full-Stack Web Intern",
+      "duration": "June 2025 - Present",
+      "location": "Remote",
+      "description": "Collaborating on responsive React dashboard layouts and back-end integration query optimizations. Refactoring API logic and standardizing route handlers to improve application scaling. Assisting team in documenting database models and optimizing MySQL table indices.",
+      "skills": ["React", "Node.js", "MySQL", "Express.js"]
+    }
+  ],
+  "education": [
+    {
+      "institution": "University College of Commerce",
+      "degree": "B.Com (Hons)",
+      "duration": "2022 - 2025",
+      "grade": "GPA: 8.5 / 10",
+      "description": "Major in business statistics and financial modeling. Active lead in software technology workshops and developer clubs.",
+      "skills": ["Financial Modeling", "Statistics", "Business Analysis"]
+    }
+  ],
+  "certificates": [
+    {
+      "name": "Machine Learning Specialization",
+      "organization": "DeepLearning.AI",
+      "date": "Aug 2025",
+      "credentialUrl": "#"
+    },
+    {
+      "name": "React Developer Credentials",
+      "organization": "Meta Careers",
+      "date": "Oct 2025",
+      "credentialUrl": "#"
+    }
+  ],
+  "achievements": [
+    {
+      "title": "1st Place - Smart India Hackathon",
+      "issuer": "Govt of India",
+      "date": "Dec 2024",
+      "description": "Won first prize for creating an AI-based inventory tracking dashboard supporting offline data synchronization."
+    }
+  ],
+  "projects": [
+    {
+      "id": "proj_1",
+      "title": "EventTix Enterprise",
+      "slug": "eventtix-enterprise",
+      "shortDescription": "Full-stack event management & ticket booking platform with role-based authentication.",
+      "description": "A comprehensive booking system that allows clients to look up regional schedules, reserve tickets dynamically, checkout with secure gates, and receive PDF credentials. Administrators get full CRUD options over ticket counts, dates, and locations.",
+      "category": "Full Stack",
+      "status": "Live",
+      "featured": true,
+      "order": 1,
+      "startDate": "2025-01-10",
+      "endDate": "2025-02-28",
+      "teamSize": 3,
+      "duration": "7 weeks",
+      "tags": [
+        "Node.js",
+        "Express.js",
+        "MySQL"
+      ],
+      "image": "",
+      "screenshots": [],
+      "githubUrl": "https://github.com",
+      "demoUrl": "https://example.com",
+      "videoUrl": ""
+    },
+    {
+      "id": "proj_2",
+      "title": "AI Chatbot Assistant",
+      "slug": "ai-chatbot-assistant",
+      "shortDescription": "AI-powered chatbot using LLMs and RAG for context-aware conversations.",
+      "description": "An intelligent bot utilizing vector databases and Retrieval-Augmented Generation to answer business inquiries with contextual precision. Connects to document parsers loading local data vaults.",
+      "category": "Machine Learning",
+      "status": "Live",
+      "featured": true,
+      "order": 2,
+      "startDate": "2025-03-01",
+      "endDate": "2025-04-15",
+      "teamSize": 1,
+      "duration": "1.5 months",
+      "tags": [
+        "Python",
+        "LangChain",
+        "ChromaDB"
+      ],
+      "image": "",
+      "screenshots": [],
+      "githubUrl": "https://github.com",
+      "demoUrl": "https://example.com",
+      "videoUrl": ""
+    },
+    {
+      "id": "proj_3",
+      "title": "Portfolio Website",
+      "slug": "portfolio-website",
+      "shortDescription": "Personal portfolio website showcasing projects, skills and achievements.",
+      "description": "A premium, fully dynamic student administration portal and portfolio dashboard showing stats charts, resume downloads, and live inbox message boards.",
+      "category": "Web Development",
+      "status": "Live",
+      "featured": true,
+      "order": 3,
+      "startDate": "2026-05-15",
+      "endDate": "2026-06-29",
+      "teamSize": 1,
+      "duration": "1 month",
+      "tags": [
+        "React",
+        "Tailwind CSS",
+        "Framer Motion"
+      ],
+      "image": "",
+      "screenshots": [],
+      "githubUrl": "https://github.com",
+      "demoUrl": "https://example.com",
+      "videoUrl": ""
+    },
+    {
+      "id": "proj_4",
+      "title": "Stock Price Predictor",
+      "slug": "stock-price-predictor",
+      "shortDescription": "ML model to predict stock prices using historical data and LSTM networks.",
+      "description": "A time-series analytics tool pulling historical stock records, running sequence modeling, and rendering trend forecasts in interactive SVG graph displays.",
+      "category": "Deep Learning",
+      "status": "Live",
+      "featured": true,
+      "order": 4,
+      "startDate": "2025-10-01",
+      "endDate": "2025-11-20",
+      "teamSize": 2,
+      "duration": "7 weeks",
+      "tags": [
+        "Python",
+        "TensorFlow",
+        "Scikit-learn"
+      ],
+      "image": "",
+      "screenshots": [],
+      "githubUrl": "https://github.com",
+      "demoUrl": "https://example.com",
+      "videoUrl": ""
+    }
+  ],
+  "testimonials": [
+    {
+      "name": "John Doe",
+      "role": "Product Lead at CloudCorp",
+      "review": "Atul is an exceptionally focused developer. He built EventTix with precision, standardizing API endpoints, and delivering on-time.",
+      "rating": 5
+    }
+  ],
+  "blogs": []
+}

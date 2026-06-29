@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Atul Pandey | Full Stack Developer & ML Enthusiast Portfolio</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700&family=Space+Grotesk:wght@700&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- Styling System -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Backdrop elements -->
+  <div class="bg-gradient-overlay"></div>
+  <div class="bg-grid"></div>
+  <div class="glow-orb orb-1"></div>
+  <div class="glow-orb orb-2"></div>
+
+  <!-- Header Navigation -->
+  <header class="navbar">
+    <div class="container nav-container">
+      <a href="#" class="nav-logo" id="nav-brand">
+        <i class="fa-solid fa-code"></i>
+        <span>Atul Pandey</span>
+      </a>
+      
+      <nav class="nav-menu" id="nav-menu">
+        <a href="#home" class="nav-link active">Home</a>
+        <a href="#about" class="nav-link">About</a>
+        <a href="#skills" class="nav-link">Skills</a>
+        <a href="#journey" class="nav-link">Journey</a>
+        <a href="#projects" class="nav-link">Projects</a>
+        <a href="#contact" class="nav-link">Contact</a>
+      </nav>
+
+      <div class="nav-actions">
+        <!-- Edit Portfolio Quick Link (Shows when running locally) -->
+        <a href="admin.html" class="btn btn-secondary btn-sm" id="admin-quick-link" style="display: none;">
+          <i class="fa-solid fa-gear"></i> Admin Panel
+        </a>
+        <button class="theme-toggle-btn" id="theme-toggle" aria-label="Toggle Night Mode">
+          <i class="fa-regular fa-moon"></i>
+        </button>
+        <a href="#" class="btn btn-primary btn-sm" id="nav-download-cv">
+          <i class="fa-solid fa-download"></i> Download Resume
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section id="home" class="section hero-section">
+    <div class="container hero-grid">
+      <div class="hero-content">
+        <span class="hero-welcome-badge">
+          👋 Welcome to my portfolio
+        </span>
+        <h1 class="hero-title">
+          Hi, I'm <span class="hero-name-gradient" id="hero-name">Atul Pandey</span>
+        </h1>
+        <h2 class="hero-roles" id="hero-title">
+          Full Stack Developer | ML Enthusiast | Problem Solver
+        </h2>
+        <p class="hero-description" id="hero-bio">
+          I build scalable web applications and intelligent solutions that solve real-world problems. Passionate about clean code, user experience, and emerging technologies.
+        </p>
+        <div class="hero-actions">
+          <a href="#projects" class="btn btn-primary">
+            <span>View My Work</span> <i class="fa-solid fa-arrow-right"></i>
+          </a>
+          <a href="#contact" class="btn btn-secondary">
+            <span>Let's Connect</span> <i class="fa-regular fa-comment-dots"></i>
+          </a>
+        </div>
+        <div class="hero-socials">
+          <a href="#" target="_blank" class="hero-social-btn" id="social-github"><i class="fa-brands fa-github"></i></a>
+          <a href="#" target="_blank" class="hero-social-btn" id="social-linkedin"><i class="fa-brands fa-linkedin"></i></a>
+          <a href="#" target="_blank" class="hero-social-btn" id="social-twitter"><i class="fa-brands fa-x-twitter"></i></a>
+          <a href="#" class="hero-social-btn" id="social-email"><i class="fa-regular fa-envelope"></i></a>
+        </div>
+      </div>
+
+      <!-- Hero Visual Illustrator -->
+      <div class="hero-visual-wrapper">
+        <div class="hero-glow-circle">
+          <div class="hero-opportunity-tag">Open to opportunities</div>
+          
+          <div class="floating-stat-card years">
+            <h3 id="stat-years">2+</h3>
+            <p>Years of Learning</p>
+          </div>
+          
+          <div class="floating-stat-card projects">
+            <h3 id="stat-projects">15+</h3>
+            <p>Projects Completed</p>
+          </div>
+          
+          <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Atul Pandey avatar photo" class="hero-avatar-image" id="hero-avatar">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- About, Skills & Metrics Section -->
+  <section id="about" class="section section-bg">
+    <div class="container">
+      <div class="about-skills-grid">
+        
+        <!-- About Box Card -->
+        <div class="card">
+          <h2 class="section-title" style="font-size: 32px; margin-bottom: 24px;">About Me</h2>
+          <p class="proj-card-desc" id="about-bio" style="margin-bottom: 24px;">
+            I'm a passionate developer skilled in building web applications with modern technologies. I love working on AI/ML projects and exploring new tech stacks.
+          </p>
+          <div class="about-me-list">
+            <div class="about-info-item">
+              <i class="fa-solid fa-location-dot"></i>
+              <span id="info-location">India</span>
+            </div>
+            <div class="about-info-item">
+              <i class="fa-solid fa-graduation-cap"></i>
+              <span id="info-education">B.Com (Hons)</span>
+            </div>
+            <div class="about-info-item">
+              <i class="fa-solid fa-envelope"></i>
+              <span id="info-email">atul.pandey@example.com</span>
+            </div>
+            <div class="about-info-item">
+              <i class="fa-solid fa-circle-check"></i>
+              <span id="info-status">Available for Internships</span>
+            </div>
+          </div>
+          <a href="#contact" class="btn btn-secondary btn-sm" style="margin-top: 10px;">
+            <span>Know More About Me</span> <i class="fa-solid fa-arrow-right"></i>
+          </a>
+        </div>
+
+        <!-- Skills list Matrix Card -->
+        <div class="card" id="skills">
+          <h2 class="section-title" style="font-size: 32px; margin-bottom: 24px;">Skills</h2>
+          <div id="skills-matrix-wrapper">
+            <!-- Dynamically Populated -->
+          </div>
+        </div>
+
+        <!-- Stats Counter Metrics Box — Auto-calculated from real data -->
+        <div class="metrics-box-grid">
+          <div class="metric-item-card">
+            <div class="metric-icon-box"><i class="fa-solid fa-briefcase"></i></div>
+            <div>
+              <div class="metric-number" id="box-projects">0</div>
+              <div class="metric-label">Projects Completed</div>
+            </div>
+          </div>
+          <div class="metric-item-card">
+            <div class="metric-icon-box"><i class="fa-solid fa-graduation-cap"></i></div>
+            <div>
+              <div class="metric-number" id="box-years">2+</div>
+              <div class="metric-label">Years of Learning</div>
+            </div>
+          </div>
+          <div class="metric-item-card">
+            <div class="metric-icon-box"><i class="fa-solid fa-code"></i></div>
+            <div>
+              <div class="metric-number" id="box-technologies">0</div>
+              <div class="metric-label">Technologies Mastered</div>
+            </div>
+          </div>
+          <div class="metric-item-card">
+            <div class="metric-icon-box"><i class="fa-brands fa-leetcode"></i></div>
+            <div>
+              <div class="metric-number" id="box-dsa">—</div>
+              <div class="metric-label">DSA Problems Solved</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- LeetCode Live Stats Card -->
+        <div class="leetcode-card" id="leetcode-card" style="display:none;">
+          <div class="leetcode-header">
+            <div class="leetcode-logo-wrap">
+              <svg viewBox="0 0 24 24" width="28" height="28" fill="#FFA116"><path d="M13.483 0a1.374 1.374 0 0 0-.961.438L7.116 6.226l-3.854 4.126a5.266 5.266 0 0 0-1.209 2.104 5.35 5.35 0 0 0-.125.513 5.527 5.527 0 0 0 .062 2.362 5.83 5.83 0 0 0 .349 1.017 5.938 5.938 0 0 0 1.271 1.818l4.277 4.193.039.038c2.248 2.165 5.852 2.133 8.063-.074l2.396-2.392c.54-.54.54-1.414.003-1.955a1.378 1.378 0 0 0-1.951-.003l-2.396 2.392a3.021 3.021 0 0 1-4.205.038l-.02-.019-4.276-4.193c-.652-.64-.972-1.469-.948-2.263a2.68 2.68 0 0 1 .066-.523 2.545 2.545 0 0 1 .619-1.164L9.13 8.114c1.058-1.134 3.204-1.27 4.43-.278l3.501 2.831c.593.48 1.461.387 1.94-.207a1.384 1.384 0 0 0-.207-1.943l-3.5-2.831c-.8-.647-1.766-1.045-2.774-1.202l2.015-2.158A1.384 1.384 0 0 0 13.483 0zm-2.866 12.815a1.38 1.38 0 0 0-1.38 1.382 1.38 1.38 0 0 0 1.38 1.382H20.79a1.38 1.38 0 0 0 1.38-1.382 1.38 1.38 0 0 0-1.38-1.382z"/></svg>
+              <div>
+                <div class="leetcode-title">LeetCode Profile</div>
+                <a id="leetcode-profile-link" href="https://leetcode.com/u/F5121ynIyr/" target="_blank" class="leetcode-username">@<span id="leetcode-username-display">F5121ynIyr</span></a>
+              </div>
+            </div>
+            <div class="leetcode-rating-badge" id="leetcode-rating-badge" style="display:none;">
+              <i class="fa-solid fa-trophy"></i>
+              <span id="leetcode-contest-rating">—</span>
+              <span style="font-size:11px; opacity:0.8;">Rating</span>
+            </div>
+          </div>
+
+          <div class="leetcode-stats-row">
+            <div class="leetcode-total-box">
+              <div class="lc-total-num" id="lc-total">—</div>
+              <div class="lc-total-label">Total Solved</div>
+            </div>
+            <div class="leetcode-difficulty-bars">
+              <div class="lc-diff-row easy">
+                <span class="lc-diff-label">Easy</span>
+                <div class="lc-bar-track"><div class="lc-bar-fill" id="lc-bar-easy"></div></div>
+                <span class="lc-diff-count" id="lc-easy">—</span>
+              </div>
+              <div class="lc-diff-row medium">
+                <span class="lc-diff-label">Medium</span>
+                <div class="lc-bar-track"><div class="lc-bar-fill" id="lc-bar-medium"></div></div>
+                <span class="lc-diff-count" id="lc-medium">—</span>
+              </div>
+              <div class="lc-diff-row hard">
+                <span class="lc-diff-label">Hard</span>
+                <div class="lc-bar-track"><div class="lc-bar-fill" id="lc-bar-hard"></div></div>
+                <span class="lc-diff-count" id="lc-hard">—</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="leetcode-footer-row">
+            <div class="lc-stat-pill">
+              <i class="fa-solid fa-earth-asia"></i>
+              <span>Rank #<span id="lc-global-rank">—</span></span>
+            </div>
+            <div class="lc-stat-pill">
+              <i class="fa-solid fa-flag-checkered"></i>
+              <span><span id="lc-contests">0</span> Contests</span>
+            </div>
+            <div class="lc-stat-pill lc-refresh-pill" onclick="loadLeetCodeStats()" title="Refresh stats">
+              <i class="fa-solid fa-rotate"></i>
+              <span id="lc-refresh-label">Refresh</span>
+            </div>
+          </div>
+          <div class="lc-loading" id="lc-loading" style="display:none;">
+            <span class="lc-spinner"></span> Fetching live data from LeetCode...
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Experience & Education Section -->
+  <section id="journey" class="section section-bg">
+    <div class="container">
+      <h2 class="section-title text-center">My Journey</h2>
+      <p class="section-subtitle text-center mx-auto" style="max-width: 600px; margin-bottom: 0;">A detailed overview of my professional work experience and academic milestones.</p>
+      
+      <div class="journey-grid">
+        <!-- Work Experience Column -->
+        <div class="card">
+          <div class="journey-section-heading">
+            <div class="journey-section-icon exp-icon">
+              <i class="fa-solid fa-briefcase"></i>
+            </div>
+            <h3>Work Experience</h3>
+          </div>
+          <div class="timeline-container" id="experience-timeline">
+            <!-- Dynamically Populated -->
+          </div>
+        </div>
+        
+        <!-- Education Column -->
+        <div class="card">
+          <div class="journey-section-heading">
+            <div class="journey-section-icon edu-icon">
+              <i class="fa-solid fa-graduation-cap"></i>
+            </div>
+            <h3>Education</h3>
+          </div>
+          <div class="timeline-container" id="education-timeline">
+            <!-- Dynamically Populated -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- Featured Projects Section -->
+  <section id="projects" class="section">
+    <div class="container">
+      <div class="projects-header-row">
+        <div>
+          <h2 class="section-title">Featured Projects</h2>
+          <p class="section-subtitle" style="margin-bottom: 0;">A curated selection of engineering solutions I've built.</p>
+        </div>
+        <a href="#contact" class="btn btn-secondary btn-sm">
+          <span>View All Projects</span> <i class="fa-solid fa-arrow-right"></i>
+        </a>
+      </div>
+
+      <div class="projects-board-grid" id="projects-board-grid">
+        <!-- Dynamically Populated -->
+      </div>
+    </div>
+  </section>
+
+
+  <!-- Contact Form Section -->
+  <section id="contact" class="section">
+    <div class="container">
+      <h2 class="section-title text-center">Let's Connect</h2>
+      <p class="section-subtitle text-center mx-auto">Feel free to reach out for internship proposals or general software developer inquiries.</p>
+      
+      <div class="contact-form-layout">
+        <!-- Left details card -->
+        <div class="card" style="justify-content: center; display: flex; flex-direction: column;">
+          <h3 style="font-size: 26px; margin-bottom: 16px; color: var(--primary);">Get in touch</h3>
+          <p style="margin-bottom: 30px; font-size: 15px; color: var(--text-paragraph);">I'm always open to discussing new engineering projects, design choices, or internship positions.</p>
+          
+          <div class="about-me-list">
+            <div class="about-info-item">
+              <i class="fa-solid fa-envelope" style="color: var(--primary);"></i>
+              <a href="#" id="contact-email">atul.pandey@example.com</a>
+            </div>
+            <div class="about-info-item">
+              <i class="fa-solid fa-location-dot" style="color: var(--primary);"></i>
+              <span id="contact-location">India</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Contact inputs form box -->
+        <div class="contact-form-card-box">
+          <form id="portfolio-contact-form">
+            <div class="contact-group-row">
+              <div class="form-group-field">
+                <label for="form-name">Your Name</label>
+                <input type="text" id="form-name" required placeholder="John Doe">
+              </div>
+              <div class="form-group-field">
+                <label for="form-email">Your Email</label>
+                <input type="email" id="form-email" required placeholder="john@example.com">
+              </div>
+            </div>
+            
+            <div class="form-group-field">
+              <label for="form-subject">Subject</label>
+              <input type="text" id="form-subject" required placeholder="Project Proposal">
+            </div>
+
+            <div class="form-group-field">
+              <label for="form-message">Message</label>
+              <textarea id="form-message" rows="5" required placeholder="Hi Atul, I'd like to talk about..."></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-full">
+              <span>Send Message</span> <i class="fa-regular fa-paper-plane"></i>
+            </button>
+          </form>
+          <div class="form-status" id="form-status" style="margin-top: 15px; display: none;"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer Bar -->
+  <footer class="footer-bar">
+    <div class="container footer-content">
+      <p>&copy; <span id="footer-year">2026</span> <span id="footer-name">Atul Pandey</span>. All Rights Reserved.</p>
+      <p>Built with HTML, CSS, JavaScript, and Node.js</p>
+    </div>
+  </footer>
+
+  <!-- Video Player Lightbox Modal -->
+  <div class="modal" id="video-lightbox-modal" style="display: none; align-items: center; justify-content: center; z-index: 1200; background: rgba(11,15,25,0.85); backdrop-filter: blur(10px);">
+    <div style="position: relative; max-width: 900px; width: 90%; background: #111827; border: 1px solid var(--border); border-radius: 16px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);">
+      <div style="padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border);">
+        <h3 id="video-modal-title" style="font-size: 18px; font-weight: 700; color: #fff;">Project Demo Video</h3>
+        <button onclick="closeVideoLightbox()" style="background: none; border: none; font-size: 24px; color: #9CA3AF; cursor: pointer; transition: color 0.2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#9CA3AF'">&times;</button>
+      </div>
+      <div style="aspect-ratio: 16/9; background: #000; display: flex; align-items: center; justify-content: center;" id="video-modal-body">
+        <!-- Embed dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="app.js"></script>
+</body>
+</html>

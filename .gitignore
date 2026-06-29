@@ -1,0 +1,7 @@
+node_modules/
+uploads/
+credentials.json
+visitors.json
+messages.json
+*.log
+.DS_Store
