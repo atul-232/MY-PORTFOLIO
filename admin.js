@@ -164,8 +164,8 @@ document.addEventListener('DOMContentLoaded', () => {
       btn.classList.add('active');
 
       const modalGroup = btn.getAttribute('data-modal-tab');
-      const form = btn.closest('form');
-      form.querySelectorAll('.modal-tab-content').forEach(content => {
+      const container = btn.closest('.modal-body') || btn.closest('.modal-content') || document;
+      container.querySelectorAll('.modal-tab-content').forEach(content => {
         content.classList.remove('active');
       });
       document.getElementById(modalGroup).classList.add('active');
