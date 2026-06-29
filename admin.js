@@ -586,6 +586,11 @@ function populateFormInputs() {
   document.getElementById('p-form-bio').value = p.bio || '';
   document.getElementById('p-form-summary').value = p.summary || '';
 
+  // Hero Section fields
+  if (document.getElementById('p-form-hero-prefix')) {
+    document.getElementById('p-form-hero-prefix').value = p.heroPrefix || "Hi, I'm ";
+  }
+
   // Stats Metrics Form
   document.getElementById('p-form-years').value = p.yearsOfLearning || '';
   document.getElementById('p-form-completed').value = p.projectsCompleted || '';
@@ -669,6 +674,9 @@ function collectFormInputs() {
   p.status = document.getElementById('p-form-status').value.trim();
   p.bio = document.getElementById('p-form-bio').value.trim();
   p.summary = document.getElementById('p-form-summary').value.trim();
+  if (document.getElementById('p-form-hero-prefix')) {
+    p.heroPrefix = document.getElementById('p-form-hero-prefix').value.trim() || "Hi, I'm ";
+  }
 
   p.yearsOfLearning = document.getElementById('p-form-years').value.trim();
   p.projectsCompleted = document.getElementById('p-form-completed').value.trim();

@@ -1349,7 +1349,7 @@
             <button class="sub-tab-btn" data-tab="port-metrics">Brief Metrics</button>
             <button class="sub-tab-btn" data-tab="port-socials">Social Profiles</button>
             <button class="sub-tab-btn" data-tab="port-cv">Resume / CV</button>
-            <button class="sub-tab-btn" data-tab="port-animation">🎬 Typing Animation</button>
+            <button class="sub-tab-btn" data-tab="port-animation">🦸 Hero Section</button>
           </div>
 
           <form id="form-portfolio">
@@ -1540,31 +1540,60 @@
                   </div>
                 </div>
               </div>
-            </div>
-
-            <!-- Subtab: Typing Animation Editor -->
+                       <!-- Subtab: Hero Section Editor -->
             <div id="port-animation" class="modal-tab-content">
-              <div class="card">
-                <div style="display:flex; align-items:center; gap:14px; margin-bottom:24px;">
-                  <div style="width:52px; height:52px; background:linear-gradient(135deg,#7C5CFF,#A78BFA); border-radius:14px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-                    <i class="fa-solid fa-keyboard" style="font-size:22px; color:#fff;"></i>
+
+              <!-- Part 1: Static Hero Text -->
+              <div class="card" style="margin-bottom:20px;">
+                <div style="display:flex; align-items:center; gap:14px; margin-bottom:20px;">
+                  <div style="width:48px; height:48px; background:linear-gradient(135deg,#7C5CFF,#A78BFA); border-radius:12px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                    <i class="fa-solid fa-heading" style="font-size:20px; color:#fff;"></i>
                   </div>
                   <div>
-                    <h3 style="font-size:18px; font-weight:800; margin:0;">Hero Typing Animation</h3>
-                    <p class="text-muted" style="font-size:13px; margin:4px 0 0;">Control what texts cycle in the "Hi, I'm <span style='color:var(--primary);'>...</span>" hero animation. Each line is typed & erased in sequence.</p>
+                    <h3 style="font-size:17px; font-weight:800; margin:0;">Static Hero Text</h3>
+                    <p class="text-muted" style="font-size:13px; margin:3px 0 0;">The non-animated text shown in the hero section — prefix, subtitle tagline, and the short bio paragraph.</p>
+                  </div>
+                </div>
+
+                <div class="contact-group-row">
+                  <div class="form-group-field">
+                    <label for="p-form-hero-prefix">PREFIX (e.g. "Hi, I'm ")</label>
+                    <input type="text" id="p-form-hero-prefix" placeholder="Hi, I'm " oninput="markAsUnsaved()">
+                  </div>
+                  <div class="form-group-field">
+                    <label for="p-form-title">SUBTITLE / TAGLINE (below hero name)</label>
+                    <input type="text" id="p-form-title" placeholder="Full Stack Developer | ML Enthusiast" oninput="markAsUnsaved()">
+                  </div>
+                </div>
+
+                <div class="form-group-field" style="margin-top:14px;">
+                  <label for="p-form-bio">HERO BIO PARAGRAPH (short description under tagline)</label>
+                  <textarea id="p-form-bio" rows="3" placeholder="I build scalable web applications and intelligent solutions that solve real-world problems..." oninput="markAsUnsaved()"></textarea>
+                </div>
+              </div>
+
+              <!-- Part 2: Typing Animation -->
+              <div class="card">
+                <div style="display:flex; align-items:center; gap:14px; margin-bottom:20px;">
+                  <div style="width:48px; height:48px; background:linear-gradient(135deg,#7C5CFF,#A78BFA); border-radius:12px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                    <i class="fa-solid fa-keyboard" style="font-size:20px; color:#fff;"></i>
+                  </div>
+                  <div>
+                    <h3 style="font-size:17px; font-weight:800; margin:0;">Typing Animation Lines</h3>
+                    <p class="text-muted" style="font-size:13px; margin:3px 0 0;">These lines cycle in the big animated hero text (e.g. "Hi, I'm <strong>a Full Stack Developer</strong>"). Each is typed &amp; erased in sequence.</p>
                   </div>
                 </div>
 
                 <!-- Live Preview -->
-                <div style="background:linear-gradient(135deg,#0B0F19,#111827); border-radius:14px; padding:28px 32px; margin-bottom:24px; text-align:center;">
-                  <p style="color:#9CA3AF; font-size:13px; margin-bottom:8px; letter-spacing:0.5px;">LIVE PREVIEW</p>
-                  <div style="font-size:28px; font-weight:800; color:#fff;">Hi, I'm <span id="anim-preview-text" style="color:#A78BFA;">Atul Pandey</span><span style="color:#A78BFA; animation: blinkCursor 0.8s infinite;">|</span></div>
+                <div style="background:linear-gradient(135deg,#0B0F19,#111827); border-radius:14px; padding:24px 28px; margin-bottom:20px; text-align:center;">
+                  <p style="color:#9CA3AF; font-size:12px; margin-bottom:8px; letter-spacing:0.5px; text-transform:uppercase;">Live Preview</p>
+                  <div style="font-size:26px; font-weight:800; color:#fff;">Hi, I'm <span id="anim-preview-text" style="color:#A78BFA;">a Software Engineer</span><span style="color:#A78BFA;">|</span></div>
                 </div>
 
                 <!-- Taglines List -->
                 <div style="margin-bottom:16px;">
                   <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                    <label style="font-size:12px; font-weight:700; letter-spacing:0.5px; text-transform:uppercase; color:var(--text-paragraph);">Animation Lines (each line types one by one)</label>
+                    <label style="font-size:12px; font-weight:700; letter-spacing:0.5px; text-transform:uppercase; color:var(--text-paragraph);">Animation Lines</label>
                     <button type="button" class="btn btn-primary btn-sm" onclick="addAnimationTagline()">
                       <i class="fa-solid fa-plus"></i> Add Line
                     </button>
@@ -1575,15 +1604,15 @@
                 </div>
 
                 <!-- Speed Controls -->
-                <div style="border-top:1px solid var(--border); padding-top:20px; margin-top:8px;">
+                <div style="border-top:1px solid var(--border); padding-top:18px; margin-top:8px;">
                   <label style="font-size:12px; font-weight:700; letter-spacing:0.5px; text-transform:uppercase; color:var(--text-paragraph); margin-bottom:12px; display:block;">Timing Settings</label>
                   <div class="contact-group-row">
                     <div class="form-group-field">
-                      <label for="anim-type-speed">TYPING SPEED (ms per char, lower = faster)</label>
+                      <label for="anim-type-speed">TYPING SPEED (ms/char — lower = faster)</label>
                       <input type="number" id="anim-type-speed" min="50" max="300" value="150" oninput="markAsUnsaved()">
                     </div>
                     <div class="form-group-field">
-                      <label for="anim-erase-speed">ERASE SPEED (ms per char)</label>
+                      <label for="anim-erase-speed">ERASE SPEED (ms/char)</label>
                       <input type="number" id="anim-erase-speed" min="30" max="200" value="80" oninput="markAsUnsaved()">
                     </div>
                   </div>
@@ -1599,7 +1628,7 @@
                   </div>
                 </div>
               </div>
-            </div>
+            </div>   </div>
 
           </form>
         </section>

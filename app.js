@@ -130,7 +130,10 @@ function populatePortfolio(data) {
   document.getElementById('hero-name').textContent = p.name || '';
   document.getElementById('hero-title').textContent = p.title || '';
   document.getElementById('hero-bio').textContent = p.bio || '';
-  
+  if (document.getElementById('hero-prefix') && p.heroPrefix) {
+    document.getElementById('hero-prefix').textContent = p.heroPrefix;
+  }
+
   if (p.image && p.image !== 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png') {
     document.getElementById('hero-avatar').src = p.image;
   }
