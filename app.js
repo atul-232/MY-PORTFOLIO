@@ -508,7 +508,6 @@ function setBar(id, count, max) {
     const pct = Math.min(100, Math.round((count / max) * 100));
     el.style.width = pct + '%';
   }
-  }
 }
 
 // Populate Certifications

@@ -2,6 +2,7 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const cors = require('cors');
+const { MongoClient } = require('mongodb');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -11,73 +12,246 @@ const MESSAGES_FILE = path.join(__dirname, 'messages.json');
 const VISITORS_FILE = path.join(__dirname, 'visitors.json');
 const UPLOADS_DIR = path.join(__dirname, 'uploads');
 
-// Ensure database files exist
+// Ensure database files exist (fallback layer)
 if (!fs.existsSync(MESSAGES_FILE)) fs.writeFileSync(MESSAGES_FILE, '[]');
 if (!fs.existsSync(VISITORS_FILE)) fs.writeFileSync(VISITORS_FILE, '[]');
 if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR);
 if (!fs.existsSync(CREDENTIALS_FILE)) fs.writeFileSync(CREDENTIALS_FILE, JSON.stringify({ email: "admin@portfolio.com", password: "admin" }, null, 2));
 
-// Seed Analytics Logs if empty to render realistic history
-const seedAnalyticsIfEmpty = () => {
-  try {
-    const data = fs.readFileSync(VISITORS_FILE, 'utf8');
-    const logs = JSON.parse(data || '[]');
-    if (logs.length > 0) return;
+// Database Provider Configuration
+const MONGODB_URI = process.env.MONGODB_URI;
+let mongoClient = null;
+let mongoDb = null;
 
-    const seededLogs = [];
-    const now = new Date();
-    const countries = ['India', 'United States', 'United Kingdom', 'Germany', 'Canada', 'Singapore', 'Australia', 'Japan'];
-    const userAgents = [
-      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-      'Mozilla/5.0 (iPhone; CPU iPhone OS 17_1_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1.2 Mobile/15E148 Safari/604.1'
-    ];
-
-    for (let i = 29; i >= 0; i--) {
-      const targetDate = new Date(now);
-      targetDate.setDate(now.getDate() - i);
+async function initDb() {
+  if (MONGODB_URI) {
+    try {
+      console.log('Connecting to MongoDB Atlas...');
+      mongoClient = new MongoClient(MONGODB_URI);
+      await mongoClient.connect();
+      mongoDb = mongoClient.db();
+      console.log('Connected to MongoDB successfully.');
       
-      let dailyVisitorsCount = 20 + Math.floor(Math.sin((29 - i) / 5) * 10) + Math.floor(Math.random() * 8);
-      dailyVisitorsCount = Math.floor(dailyVisitorsCount * 5.5); // around 100-200 per day
-      const dailyViewsCount = Math.floor(dailyVisitorsCount * 1.6);
+      // Perform automated data migration if MongoDB collections are empty
+      await migrateLocalToMongo();
+    } catch (err) {
+      console.error('Failed to connect to MongoDB Atlas, falling back to local storage:', err);
+      mongoDb = null;
+    }
+  } else {
+    console.log('No MONGODB_URI provided. Running on local JSON file storage.');
+  }
+}
 
-      for (let j = 0; j < dailyVisitorsCount; j++) {
-        const dateWithHour = new Date(targetDate);
-        dateWithHour.setHours(Math.floor(Math.random() * 24), Math.floor(Math.random() * 60));
-        
-        const ip = `192.168.1.${10 + Math.floor(Math.random() * 190)}`;
-        seededLogs.push({
-          type: 'visitor',
-          ip,
-          userAgent: userAgents[Math.floor(Math.random() * userAgents.length)],
-          time: dateWithHour.toISOString(),
-          country: countries[Math.floor(Math.random() * countries.length)]
-        });
+async function migrateLocalToMongo() {
+  if (!mongoDb) return;
+  
+  // 1. Migrate Portfolio Data
+  const portfolioCol = mongoDb.collection('portfolio_data');
+  const countPortfolio = await portfolioCol.countDocuments();
+  if (countPortfolio === 0 && fs.existsSync(DATA_FILE)) {
+    try {
+      const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8') || '{}');
+      if (Object.keys(data).length > 0) {
+        await portfolioCol.insertOne({ key: 'main', data });
+        console.log('Migrated portfolio data to MongoDB.');
       }
+    } catch (e) { console.error('Migration of data.json failed:', e); }
+  }
 
-      for (let j = 0; j < dailyViewsCount; j++) {
-        const dateWithHour = new Date(targetDate);
-        dateWithHour.setHours(Math.floor(Math.random() * 24), Math.floor(Math.random() * 60));
-        
-        const ip = `192.168.1.${10 + Math.floor(Math.random() * 190)}`;
-        seededLogs.push({
-          type: 'view',
-          ip,
-          userAgent: userAgents[Math.floor(Math.random() * userAgents.length)],
-          time: dateWithHour.toISOString(),
-          country: countries[Math.floor(Math.random() * countries.length)]
-        });
+  // 2. Migrate Credentials
+  const credsCol = mongoDb.collection('credentials');
+  const countCreds = await credsCol.countDocuments();
+  if (countCreds === 0 && fs.existsSync(CREDENTIALS_FILE)) {
+    try {
+      const creds = JSON.parse(fs.readFileSync(CREDENTIALS_FILE, 'utf8') || '{}');
+      if (creds.email && creds.password) {
+        await credsCol.insertOne({ email: creds.email, password: creds.password });
+        console.log('Migrated admin credentials to MongoDB.');
+      }
+    } catch (e) { console.error('Migration of credentials failed:', e); }
+  }
+
+  // 3. Migrate Messages
+  const msgCol = mongoDb.collection('messages');
+  const countMsg = await msgCol.countDocuments();
+  if (countMsg === 0 && fs.existsSync(MESSAGES_FILE)) {
+    try {
+      const messages = JSON.parse(fs.readFileSync(MESSAGES_FILE, 'utf8') || '[]');
+      if (messages.length > 0) {
+        await msgCol.insertMany(messages);
+        console.log(`Migrated ${messages.length} messages to MongoDB.`);
+      }
+    } catch (e) { console.error('Migration of messages failed:', e); }
+  }
+
+  // 4. Migrate Visitors
+  const visCol = mongoDb.collection('visitors');
+  const countVis = await visCol.countDocuments();
+  if (countVis === 0 && fs.existsSync(VISITORS_FILE)) {
+    try {
+      const visitors = JSON.parse(fs.readFileSync(VISITORS_FILE, 'utf8') || '[]');
+      if (visitors.length > 0) {
+        const chunks = [];
+        const chunkSize = 1000;
+        for (let i = 0; i < visitors.length; i += chunkSize) {
+          chunks.push(visitors.slice(i, i + chunkSize));
+        }
+        for (const chunk of chunks) {
+          await visCol.insertMany(chunk);
+        }
+        console.log(`Migrated ${visitors.length} visitor logs to MongoDB.`);
+      }
+    } catch (e) { console.error('Migration of visitor logs failed:', e); }
+  }
+}
+
+const db = {
+  getPortfolioData: async () => {
+    if (mongoDb) {
+      const doc = await mongoDb.collection('portfolio_data').findOne({ key: 'main' });
+      return doc ? doc.data : {};
+    }
+    try {
+      if (!fs.existsSync(DATA_FILE)) return {};
+      return JSON.parse(fs.readFileSync(DATA_FILE, 'utf8') || '{}');
+    } catch { return {}; }
+  },
+
+  savePortfolioData: async (data) => {
+    if (mongoDb) {
+      await mongoDb.collection('portfolio_data').replaceOne({ key: 'main' }, { key: 'main', data }, { upsert: true });
+      return;
+    }
+    fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
+  },
+
+  getCredentials: async () => {
+    if (mongoDb) {
+      const doc = await mongoDb.collection('credentials').findOne({});
+      return doc || { email: 'admin@portfolio.com', password: 'admin' };
+    }
+    try {
+      if (!fs.existsSync(CREDENTIALS_FILE)) return { email: 'admin@portfolio.com', password: 'admin' };
+      return JSON.parse(fs.readFileSync(CREDENTIALS_FILE, 'utf8'));
+    } catch { return { email: 'admin@portfolio.com', password: 'admin' }; }
+  },
+
+  saveCredentials: async (creds) => {
+    if (mongoDb) {
+      await mongoDb.collection('credentials').deleteMany({});
+      await mongoDb.collection('credentials').insertOne({ email: creds.email, password: creds.password });
+      return;
+    }
+    fs.writeFileSync(CREDENTIALS_FILE, JSON.stringify(creds, null, 2));
+  },
+
+  getMessages: async () => {
+    if (mongoDb) {
+      return await mongoDb.collection('messages').find({}).sort({ date: -1 }).toArray();
+    }
+    try {
+      if (!fs.existsSync(MESSAGES_FILE)) return [];
+      return JSON.parse(fs.readFileSync(MESSAGES_FILE, 'utf8') || '[]');
+    } catch { return []; }
+  },
+
+  saveMessages: async (messages) => {
+    if (mongoDb) {
+      await mongoDb.collection('messages').deleteMany({});
+      if (messages.length > 0) {
+        await mongoDb.collection('messages').insertMany(messages);
+      }
+      return;
+    }
+    fs.writeFileSync(MESSAGES_FILE, JSON.stringify(messages, null, 2));
+  },
+
+  addMessage: async (msg) => {
+    if (mongoDb) {
+      await mongoDb.collection('messages').insertOne(msg);
+      return;
+    }
+    const messages = await db.getMessages();
+    messages.unshift(msg);
+    await db.saveMessages(messages);
+  },
+
+  getVisitors: async () => {
+    if (mongoDb) {
+      return await mongoDb.collection('visitors').find({}).sort({ time: -1 }).toArray();
+    }
+    try {
+      if (!fs.existsSync(VISITORS_FILE)) return [];
+      return JSON.parse(fs.readFileSync(VISITORS_FILE, 'utf8') || '[]');
+    } catch { return []; }
+  },
+
+  saveVisitors: async (visitors) => {
+    if (mongoDb) {
+      await mongoDb.collection('visitors').deleteMany({});
+      if (visitors.length > 0) {
+        const chunkSize = 1000;
+        for (let i = 0; i < visitors.length; i += chunkSize) {
+          await mongoDb.collection('visitors').insertMany(visitors.slice(i, i + chunkSize));
+        }
+      }
+      return;
+    }
+    fs.writeFileSync(VISITORS_FILE, JSON.stringify(visitors, null, 2));
+  },
+
+  addVisitor: async (log) => {
+    if (mongoDb) {
+      await mongoDb.collection('visitors').insertOne(log);
+      return;
+    }
+    const logs = await db.getVisitors();
+    logs.unshift(log);
+    await db.saveVisitors(logs);
+  },
+
+  saveUpload: async (pathKey, fileDataBuffer, mimeType) => {
+    if (mongoDb) {
+      await mongoDb.collection('uploads').replaceOne(
+        { pathKey },
+        { pathKey, fileData: fileDataBuffer.toString('base64'), mimeType },
+        { upsert: true }
+      );
+      return;
+    }
+    const targetPath = path.join(__dirname, pathKey);
+    const dir = path.dirname(targetPath);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(targetPath, fileDataBuffer);
+  },
+
+  getUpload: async (pathKey) => {
+    if (mongoDb) {
+      const doc = await mongoDb.collection('uploads').findOne({ pathKey });
+      if (doc) {
+        return {
+          buffer: Buffer.from(doc.fileData, 'base64'),
+          mimeType: doc.mimeType
+        };
       }
     }
-
-    seededLogs.sort((a, b) => new Date(b.time) - new Date(a.time));
-    fs.writeFileSync(VISITORS_FILE, JSON.stringify(seededLogs, null, 2));
-    console.log(`🌱 Seeded ${seededLogs.length} analytics entries to database.`);
-  } catch (err) {
-    console.error('Failed to seed analytics:', err);
+    const targetPath = path.join(__dirname, pathKey);
+    if (fs.existsSync(targetPath)) {
+      const ext = path.extname(targetPath).toLowerCase();
+      let mimeType = 'application/octet-stream';
+      if (ext === '.png') mimeType = 'image/png';
+      else if (ext === '.jpg' || ext === '.jpeg') mimeType = 'image/jpeg';
+      else if (ext === '.gif') mimeType = 'image/gif';
+      else if (ext === '.pdf') mimeType = 'application/pdf';
+      return {
+        buffer: fs.readFileSync(targetPath),
+        mimeType
+      };
+    }
+    return null;
   }
 };
-// seedAnalyticsIfEmpty();
 
 // Session memory store
 const activeSessions = new Set();
@@ -97,6 +271,27 @@ const authenticate = (req, res, next) => {
 // Middlewares
 app.use(cors());
 app.use(express.json({ limit: '15mb' })); // support large base64 strings
+
+// Intercept uploads path to pull from MongoDB database first
+app.get('/uploads/:type/:name', async (req, res) => {
+  const { type, name } = req.params;
+  const pathKey = `uploads/${type}/${name}`;
+  try {
+    const file = await db.getUpload(pathKey);
+    if (file) {
+      res.setHeader('Content-Type', file.mimeType);
+      return res.send(file.buffer);
+    }
+  } catch (err) {
+    console.error('Error fetching file from db:', err);
+  }
+  const localPath = path.join(UPLOADS_DIR, type, name);
+  if (fs.existsSync(localPath)) {
+    return res.sendFile(localPath);
+  }
+  res.status(404).send('File not found');
+});
+
 app.use('/uploads', express.static(UPLOADS_DIR));
 app.use(express.static(__dirname));
 
@@ -104,78 +299,76 @@ app.use(express.static(__dirname));
 const logVisitor = (req, res, next) => {
   const isHomepageHit = req.path === '/' || req.path === '/index.html' || req.path === '/index' || req.path === '/directory.html';
   if (isHomepageHit) {
-    try {
-      const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '127.0.0.1';
-      const userAgent = req.headers['user-agent'] || 'Unknown Browser';
-      
-      const countries = ['India', 'United States', 'United Kingdom', 'Germany', 'Canada', 'Singapore', 'Australia', 'Japan'];
-      const mockCountry = countries[Math.floor(Math.random() * countries.length)];
-      
-      const logs = JSON.parse(fs.readFileSync(VISITORS_FILE, 'utf8') || '[]');
-      const todayStr = new Date().toISOString().substring(0, 10);
-      const hasVisitedToday = logs.some(l => l.type === 'visitor' && l.ip === ip && l.time.startsWith(todayStr));
+    (async () => {
+      try {
+        let ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '127.0.0.1';
+        if (ip.includes('::ffff:')) ip = ip.replace('::ffff:', '');
+        const userAgent = req.headers['user-agent'] || 'Unknown Browser';
+        
+        const countries = ['India', 'United States', 'United Kingdom', 'Germany', 'Canada', 'Singapore', 'Australia', 'Japan'];
+        const mockCountry = countries[Math.floor(Math.random() * countries.length)];
+        
+        const logs = await db.getVisitors();
+        const todayStr = new Date().toISOString().substring(0, 10);
+        const hasVisitedToday = logs.some(l => l.type === 'visitor' && l.ip === ip && l.time.startsWith(todayStr));
 
-      // Always log a view
-      logs.unshift({
-        type: 'view',
-        ip,
-        userAgent,
-        time: new Date().toISOString(),
-        country: mockCountry
-      });
-
-      // Log unique visitor daily
-      if (!hasVisitedToday) {
+        // Always log a view
         logs.unshift({
-          type: 'visitor',
+          type: 'view',
           ip,
           userAgent,
           time: new Date().toISOString(),
           country: mockCountry
         });
-      }
 
-      if (logs.length > 5000) logs.pop();
-      fs.writeFileSync(VISITORS_FILE, JSON.stringify(logs, null, 2));
-    } catch (err) {
-      console.error('Visitor logging failed:', err);
-    }
+        // Log unique visitor daily
+        if (!hasVisitedToday) {
+          logs.unshift({
+            type: 'visitor',
+            ip,
+            userAgent,
+            time: new Date().toISOString(),
+            country: mockCountry
+          });
+        }
+
+        if (logs.length > 5000) logs.pop();
+        await db.saveVisitors(logs);
+      } catch (err) {
+        console.error('Visitor logging failed:', err);
+      }
+    })();
   }
   next();
 };
 app.use(logVisitor);
 
 // API: Get portfolio dataset
-app.get('/api/data', (req, res) => {
-  fs.readFile(DATA_FILE, 'utf8', (err, data) => {
-    if (err) {
-      return res.status(500).json({ error: 'Failed to read database records' });
-    }
-    try {
-      res.json(JSON.parse(data));
-    } catch {
-      res.status(500).json({ error: 'Database JSON file is corrupted' });
-    }
-  });
+app.get('/api/data', async (req, res) => {
+  try {
+    const data = await db.getPortfolioData();
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to read database records' });
+  }
 });
 
 // API: Save portfolio dataset (Requires Auth)
-app.post('/api/save-data', authenticate, (req, res) => {
+app.post('/api/save-data', authenticate, async (req, res) => {
   const dataset = req.body;
   if (!dataset || typeof dataset !== 'object') {
     return res.status(400).json({ error: 'Invalid body dataset format' });
   }
-
-  fs.writeFile(DATA_FILE, JSON.stringify(dataset, null, 2), 'utf8', (err) => {
-    if (err) {
-      return res.status(500).json({ error: 'Failed to save database edits' });
-    }
+  try {
+    await db.savePortfolioData(dataset);
     res.json({ success: true, message: 'Database saved and compiled successfully' });
-  });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to save database edits' });
+  }
 });
 
 // API: Login admin
-app.post('/api/login', (req, res) => {
+app.post('/api/login', async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
     return res.status(400).json({ error: 'Email and password are required fields' });
@@ -227,14 +420,13 @@ app.post('/api/logout', (req, res) => {
 });
 
 // API: Update Security Settings
-app.post('/api/settings/security', authenticate, (req, res) => {
+app.post('/api/settings/security', authenticate, async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password || password.length < 6) {
     return res.status(400).json({ error: 'Password must be at least 6 characters' });
   }
-
   try {
-    fs.writeFileSync(CREDENTIALS_FILE, JSON.stringify({ email, password }, null, 2));
+    await db.saveCredentials({ email, password });
     res.json({ success: true, message: 'Credentials updated successfully' });
   } catch {
     res.status(500).json({ error: 'Failed to update credentials database' });
@@ -242,9 +434,9 @@ app.post('/api/settings/security', authenticate, (req, res) => {
 });
 
 // API: Get messages (Requires Auth)
-app.get('/api/messages', authenticate, (req, res) => {
+app.get('/api/messages', authenticate, async (req, res) => {
   try {
-    const messages = JSON.parse(fs.readFileSync(MESSAGES_FILE, 'utf8') || '[]');
+    const messages = await db.getMessages();
     res.json(messages);
   } catch {
     res.status(500).json({ error: 'Failed to retrieve messages' });
@@ -252,14 +444,12 @@ app.get('/api/messages', authenticate, (req, res) => {
 });
 
 // API: Submit message inquiry (Public)
-app.post('/api/messages', (req, res) => {
+app.post('/api/messages', async (req, res) => {
   const { name, email, subject, message } = req.body;
   if (!name || !email || !subject || !message) {
     return res.status(400).json({ error: 'All fields are required' });
   }
-
   try {
-    const messages = JSON.parse(fs.readFileSync(MESSAGES_FILE, 'utf8') || '[]');
     const newMsg = {
       id: 'msg_' + Date.now(),
       name,
@@ -269,8 +459,7 @@ app.post('/api/messages', (req, res) => {
       date: new Date().toISOString(),
       status: 'inbox'
     };
-    messages.unshift(newMsg);
-    fs.writeFileSync(MESSAGES_FILE, JSON.stringify(messages, null, 2));
+    await db.addMessage(newMsg);
     res.json({ success: true, message: 'Inquiry submitted successfully' });
   } catch (err) {
     res.status(500).json({ error: 'Failed to record message inquiry' });
@@ -278,47 +467,42 @@ app.post('/api/messages', (req, res) => {
 });
 
 // API: Archive or Delete Message (Requires Auth)
-app.post('/api/messages/action', authenticate, (req, res) => {
+app.post('/api/messages/action', authenticate, async (req, res) => {
   const { id, action } = req.body;
   if (!id || !action) return res.status(400).json({ error: 'Invalid message action details' });
-
   try {
-    let messages = JSON.parse(fs.readFileSync(MESSAGES_FILE, 'utf8') || '[]');
+    let messages = await db.getMessages();
     if (action === 'delete') {
       messages = messages.filter(m => m.id !== id);
     } else if (action === 'archive') {
       messages = messages.map(m => m.id === id ? { ...m, status: 'archived' } : m);
     }
-    fs.writeFileSync(MESSAGES_FILE, JSON.stringify(messages, null, 2));
+    await db.saveMessages(messages);
     res.json({ success: true });
   } catch {
-    res.status(500).json({ error: 'Failed to update message inquiry status' });
+    res.status(500).json({ error: 'Failed to update message status' });
   }
 });
 
 // API: Log page hits (Public)
-app.post('/api/analytics/hit', (req, res) => {
+app.post('/api/analytics/hit', async (req, res) => {
   const { type } = req.body;
   try {
-    const logs = JSON.parse(fs.readFileSync(VISITORS_FILE, 'utf8') || '[]');
     let ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '127.0.0.1';
     if (ip.includes('::ffff:')) {
       ip = ip.replace('::ffff:', '');
     }
     const userAgent = req.headers['user-agent'] || 'Browser';
-    
     const countries = ['India', 'United States', 'Canada', 'United Kingdom', 'Germany', 'Australia', 'Singapore'];
     const country = countries[Math.floor(Math.random() * countries.length)];
 
-    logs.unshift({
+    await db.addVisitor({
       type: type === 'visitor' ? 'visitor' : 'view',
       ip,
       userAgent,
       time: new Date().toISOString(),
       country
     });
-
-    fs.writeFileSync(VISITORS_FILE, JSON.stringify(logs, null, 2));
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: 'Failed to record visitor hit' });
@@ -326,9 +510,9 @@ app.post('/api/analytics/hit', (req, res) => {
 });
 
 // API: Get analytics (Requires Auth)
-app.get('/api/analytics', authenticate, (req, res) => {
+app.get('/api/analytics', authenticate, async (req, res) => {
   try {
-    const logs = JSON.parse(fs.readFileSync(VISITORS_FILE, 'utf8') || '[]');
+    const logs = await db.getVisitors();
     res.json(logs);
   } catch {
     res.status(500).json({ error: 'Failed to load visitor analytics' });
@@ -336,13 +520,11 @@ app.get('/api/analytics', authenticate, (req, res) => {
 });
 
 // API: Modify visitor analytics logs (Requires Auth)
-app.post('/api/analytics/action', authenticate, (req, res) => {
+app.post('/api/analytics/action', authenticate, async (req, res) => {
   const { action, time, logEntry } = req.body;
   if (!action) return res.status(400).json({ error: 'Action parameter is required' });
-
   try {
-    let logs = JSON.parse(fs.readFileSync(VISITORS_FILE, 'utf8') || '[]');
-    
+    let logs = await db.getVisitors();
     if (action === 'delete') {
       logs = logs.filter(l => l.time !== time);
     } else if (action === 'clear') {
@@ -360,8 +542,7 @@ app.post('/api/analytics/action', authenticate, (req, res) => {
       });
       logs.sort((a, b) => new Date(b.time) - new Date(a.time));
     }
-    
-    fs.writeFileSync(VISITORS_FILE, JSON.stringify(logs, null, 2));
+    await db.saveVisitors(logs);
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: 'Failed to execute analytics action' });
@@ -369,11 +550,11 @@ app.post('/api/analytics/action', authenticate, (req, res) => {
 });
 
 // API: Get computed dashboard analytics summary (Requires Auth)
-app.get('/api/analytics/summary', authenticate, (req, res) => {
+app.get('/api/analytics/summary', authenticate, async (req, res) => {
   try {
-    const logs = JSON.parse(fs.readFileSync(VISITORS_FILE, 'utf8') || '[]');
-    const messages = JSON.parse(fs.readFileSync(MESSAGES_FILE, 'utf8') || '{}');
-    const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8') || '{}');
+    const logs = await db.getVisitors();
+    const data = await db.getPortfolioData();
+    const messages = await db.getMessages();
     const projects = data.projects || [];
     const now = new Date();
 
@@ -420,7 +601,6 @@ app.get('/api/analytics/summary', authenticate, (req, res) => {
       return t >= prevStart && t < rangeStart;
     }).length;
 
-
     const getPercent = (curr, prev) => {
       if (prev === 0) return curr > 0 ? 100 : 0;
       return Math.round(((curr - prev) / prev) * 100);
@@ -431,7 +611,6 @@ app.get('/api/analytics/summary', authenticate, (req, res) => {
     const messagesTrend = getPercent(currMsgs, prevMsgs);
     const projectsTrend = projects.length > 0 ? 5 : 0;
 
-    
     // Group logs by date for the past 27 days for chart plotting (9 intervals of 3 days)
     const chartLabels = [];
     const chartVisitors = [];
@@ -550,9 +729,8 @@ app.get('/api/analytics/summary', authenticate, (req, res) => {
   }
 });
 
-
 // API: Handle base64 uploads (Requires Auth)
-app.post('/api/upload', authenticate, (req, res) => {
+app.post('/api/upload', authenticate, async (req, res) => {
   const { fileName, fileType, fileData } = req.body;
   if (!fileName || !fileType || !fileData) {
     return res.status(400).json({ error: 'Required: fileName, fileType, fileData' });
@@ -568,13 +746,9 @@ app.post('/api/upload', authenticate, (req, res) => {
       return res.status(400).json({ error: 'Invalid base64 payload format' });
     }
 
-    const typeDir = path.join(UPLOADS_DIR, fileType);
-    if (!fs.existsSync(typeDir)) fs.mkdirSync(typeDir, { recursive: true });
-
-    // Sanitize fileName
+    const mimeType = matches[1];
     const cleanName = path.basename(fileName).replace(/[^a-zA-Z0-9.\-_]/g, '');
-    const targetPath = path.join(typeDir, cleanName);
-
+    const pathKey = `uploads/${fileType}/${cleanName}`;
     const fileBuffer = Buffer.from(matches[2], 'base64');
     
     // Check file size (5MB limit)
@@ -582,7 +756,7 @@ app.post('/api/upload', authenticate, (req, res) => {
       return res.status(400).json({ error: 'File size exceeds maximum limit of 5MB' });
     }
 
-    fs.writeFileSync(targetPath, fileBuffer);
+    await db.saveUpload(pathKey, fileBuffer, mimeType);
     const fileUrl = `/uploads/${fileType}/${cleanName}`;
     res.json({ success: true, fileUrl });
   } catch (err) {
@@ -598,7 +772,6 @@ app.get('/api/leetcode/:username', async (req, res) => {
   const now = Date.now();
   const CACHE_TTL = 10 * 60 * 1000; // 10 minutes
 
-  // Return cached if fresh
   if (leetcodeCache[username] && (now - leetcodeCache[username].fetchedAt) < CACHE_TTL) {
     return res.json(leetcodeCache[username].data);
   }
@@ -638,7 +811,6 @@ app.get('/api/leetcode/:username', async (req, res) => {
   `;
 
   try {
-    // Dynamic import for node-fetch compatibility
     const https = require('https');
     const postData = JSON.stringify({ query, variables: { username } });
 
@@ -687,9 +859,11 @@ app.get('*', (req, res) => {
 });
 
 // Run server
-app.listen(PORT, () => {
-  console.log(`====================================================`);
-  console.log(`🚀 Portfolio Server running at http://localhost:${PORT}`);
-  console.log(`⚙️  Admin Dashboard running at http://localhost:${PORT}/admin.html`);
-  console.log(`====================================================`);
+initDb().then(() => {
+  app.listen(PORT, () => {
+    console.log(`====================================================`);
+    console.log(`🚀 Portfolio Server running at http://localhost:${PORT}`);
+    console.log(`⚙️  Admin Dashboard running at http://localhost:${PORT}/admin.html`);
+    console.log(`====================================================`);
+  });
 });
