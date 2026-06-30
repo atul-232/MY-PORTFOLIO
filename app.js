@@ -601,7 +601,7 @@ function populateAchievements(achs) {
 }
 
 function initReadMore() {
-  document.querySelectorAll('.text-clamp').forEach(el => {
+  document.querySelectorAll('.text-clamp, .content-clamp').forEach(el => {
     // Avoid adding multiple buttons
     if (el.nextElementSibling && el.nextElementSibling.classList.contains('read-more-btn')) return;
     
