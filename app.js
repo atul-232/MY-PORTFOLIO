@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }).catch(() => {});
 
   // Load dataset
-  const dataUrl = isLocal && window.location.protocol !== 'file:' ? '/api/data' : 'data.json';
+  const dataUrl = window.location.protocol === 'file:' ? 'data.json' : '/api/data';
   
   fetch(dataUrl)
     .then(res => {
