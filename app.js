@@ -154,6 +154,16 @@ function populatePortfolio(data) {
   if (p.twitter) twitter.href = p.twitter; else twitter.style.display = 'none';
   if (p.email) email.href = `mailto:${p.email}`; else email.style.display = 'none';
   
+  const leetcodeIcon = document.getElementById('social-leetcode');
+  if (leetcodeIcon) {
+    if (p.leetcodeUsername) {
+      leetcodeIcon.href = `https://leetcode.com/u/${p.leetcodeUsername}/`;
+      leetcodeIcon.style.display = 'inline-flex';
+    } else {
+      leetcodeIcon.style.display = 'none';
+    }
+  }
+  
   if (p.resumeUrl && p.resumeUrl !== '#') {
     downloadCV.href = p.resumeUrl;
     downloadCV.style.display = 'inline-flex';
@@ -435,6 +445,9 @@ async function loadLeetCodeStats(username) {
     username = lcEl ? lcEl.textContent : null;
   }
   if (!username) return;
+  
+  const lcCard = document.getElementById('leetcode-card');
+  if (lcCard) lcCard.style.display = 'block';
 
   const loading = document.getElementById('lc-loading');
   const refreshLabel = document.getElementById('lc-refresh-label');
