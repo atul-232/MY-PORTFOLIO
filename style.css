@@ -479,6 +479,37 @@ a {
   align-items: start;
 }
 
+.text-clamp {
+  display: -webkit-box;
+  -webkit-line-clamp: 6; /* Limits to 6 lines */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  position: relative;
+}
+
+.text-clamp.expanded {
+  -webkit-line-clamp: unset;
+}
+
+.read-more-btn {
+  background: none;
+  border: none;
+  color: var(--primary);
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  margin-top: 8px;
+  margin-bottom: 16px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.read-more-btn:hover {
+  text-decoration: underline;
+}
+
 .about-me-list {
   display: flex;
   flex-direction: column;

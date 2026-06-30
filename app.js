@@ -161,8 +161,12 @@ function populatePortfolio(data) {
     downloadCV.style.display = 'none';
   }
 
-  // About Card details
-  document.getElementById('about-bio').textContent = p.summary || p.bio || '';
+  const aboutBio = document.getElementById('about-bio');
+  aboutBio.textContent = p.summary || p.bio || '';
+  
+  setTimeout(() => {
+    initReadMore();
+  }, 100);
   document.getElementById('info-location').textContent = p.location || 'India';
   document.getElementById('info-education').textContent = p.educationBrief || 'B.Com (Hons)';
   document.getElementById('info-email').textContent = p.email || '';
@@ -289,7 +293,7 @@ function populateProjects(projects) {
     card.innerHTML = `
       <div class="proj-hero-image">${thumbHTML}</div>
       <h3 class="proj-card-title">${p.title}</h3>
-      <p class="proj-card-desc">${p.shortDescription || p.description}</p>
+      <p class="proj-card-desc text-clamp">${p.shortDescription || p.description}</p>
       <div class="proj-tags-list">
         ${(p.tags || []).map(t => `<span class="proj-tag-badge">${t}</span>`).join('')}
       </div>
@@ -560,7 +564,7 @@ function populateAchievements(achs) {
     let iconHTML = '<i class="fa-solid fa-trophy"></i>';
     if (a.image) iconHTML = `<img src="${a.image}" alt="${a.title}" style="width:100%;height:100%;object-fit:cover;border-radius:12px;">`;
     let descHTML = '';
-    if (a.description) descHTML = `<p class="ach-card-desc">${a.description}</p>`;
+    if (a.description) descHTML = `<p class="ach-card-desc text-clamp" style="margin-top: 10px;">${a.description}</p>`;
     let linkHTML = '';
     if (a.link && a.link !== '#') {
       linkHTML = `<a href="${a.link}" target="_blank" class="ach-card-link"><i class="fa-solid fa-arrow-up-right-from-square" style="font-size:11px;"></i> View</a>`;
@@ -580,5 +584,29 @@ function populateAchievements(achs) {
       </div>
     `;
     grid.appendChild(card);
+  });
+}
+
+function initReadMore() {
+  document.querySelectorAll('.text-clamp').forEach(el => {
+    // Avoid adding multiple buttons
+    if (el.nextElementSibling && el.nextElementSibling.classList.contains('read-more-btn')) return;
+    
+    // Check for overflow
+    if (el.scrollHeight > el.clientHeight) {
+      const btn = document.createElement('button');
+      btn.className = 'read-more-btn';
+      btn.innerHTML = 'Read More <i class="fa-solid fa-chevron-down"></i>';
+      btn.style.marginTop = '8px';
+      btn.onclick = () => {
+        el.classList.toggle('expanded');
+        if (el.classList.contains('expanded')) {
+          btn.innerHTML = 'Read Less <i class="fa-solid fa-chevron-up"></i>';
+        } else {
+          btn.innerHTML = 'Read More <i class="fa-solid fa-chevron-down"></i>';
+        }
+      };
+      el.parentNode.insertBefore(btn, el.nextSibling);
+    }
   });
 }
