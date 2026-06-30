@@ -476,6 +476,7 @@ a {
   grid-template-columns: 1fr 1.2fr 0.9fr;
   gap: 32px;
   margin-bottom: 64px;
+  align-items: start;
 }
 
 .about-me-list {
