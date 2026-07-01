@@ -18,12 +18,21 @@ app.use((req, res, next) => {
   const rawIps = req.headers['x-forwarded-for'] || req.ip || req.connection.remoteAddress || '127.0.0.1';
   const ip = rawIps.split(',')[0].trim();
   
-  // Check if IP is banned or if the banned cookie is present
-  const isBannedCookie = req.headers.cookie && req.headers.cookie.includes('banned_device=true');
+  // Check for banned cookie
+  let bannedCookieIp = null;
+  if (req.headers.cookie) {
+    const match = req.headers.cookie.match(/banned_device=([^;]+)/);
+    if (match) bannedCookieIp = match[1];
+  }
   
-  if (globalBlockedIps.has(ip) || isBannedCookie) {
-    // Send a blank 403 Forbidden to not alert the hacker of custom software
+  // Block if current IP is banned OR if the cookie's original IP is still banned
+  if (globalBlockedIps.has(ip) || (bannedCookieIp && globalBlockedIps.has(bannedCookieIp))) {
     return res.status(403).send('Access Denied');
+  }
+  
+  // If they have a cookie but the original IP is no longer banned (Admin unblocked it)
+  if (bannedCookieIp && !globalBlockedIps.has(bannedCookieIp)) {
+    res.clearCookie('banned_device'); // Automatically remove the ban cookie
   }
   
   // Attach the true IP to the request for easy access in routes
@@ -486,8 +495,8 @@ app.post('/api/login', async (req, res) => {
       failedAttempts.delete(ip);
       globalBlockedIps.add(ip); // Add to global ban list instantly
       
-      // Set a permanent cookie to ban the device even if their IP changes
-      res.cookie('banned_device', 'true', { maxAge: 9999999999, httpOnly: false });
+      // Set a permanent cookie to ban the device, storing the original banned IP
+      res.cookie('banned_device', ip, { maxAge: 9999999999, httpOnly: false });
       
       return res.status(403).json({ 
         error: 'Too many failed attempts. Your device has been permanently blocked.',
