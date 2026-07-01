@@ -26,24 +26,30 @@ const MONGODB_URI = process.env.MONGODB_URI;
 let mongoClient = null;
 let mongoDb = null;
 
-// Email Notification Setup
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
-  }
-});
-
 const sendNotification = (subject, text) => {
-  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) return;
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+    console.log('Skipping email notification: EMAIL_USER or EMAIL_PASS not set.');
+    return;
+  }
+  
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS
+    }
+  });
+
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: process.env.EMAIL_USER,
     subject: `[Portfolio Alert] ${subject}`,
     text
   };
-  transporter.sendMail(mailOptions).catch(err => console.error('Failed to send email:', err));
+  
+  transporter.sendMail(mailOptions)
+    .then(info => console.log('Email sent successfully:', info.response))
+    .catch(err => console.error('Failed to send email:', err));
 };
 
 async function initDb() {
