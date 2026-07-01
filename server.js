@@ -486,6 +486,45 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
+// TEMPORARY DEBUG ENDPOINT FOR EMAIL
+app.get('/api/test-email-config', async (req, res) => {
+  const debugInfo = {
+    userSet: !!process.env.EMAIL_USER,
+    userValue: process.env.EMAIL_USER ? process.env.EMAIL_USER.substring(0, 3) + '***' : 'undefined',
+    passSet: !!process.env.EMAIL_PASS,
+    passLength: process.env.EMAIL_PASS ? process.env.EMAIL_PASS.length : 0,
+    testResult: 'Pending'
+  };
+
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+    debugInfo.testResult = 'Failed: Environment variables are missing';
+    return res.json(debugInfo);
+  }
+
+  try {
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+      }
+    });
+
+    const info = await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: process.env.EMAIL_USER,
+      subject: '[Diagnostic Test] Email System',
+      text: 'If you receive this, the server can successfully send emails.'
+    });
+
+    debugInfo.testResult = 'Success: ' + info.response;
+    res.json(debugInfo);
+  } catch (err) {
+    debugInfo.testResult = 'Error: ' + err.message;
+    res.json(debugInfo);
+  }
+});
+
 // API: Check token verification
 app.get('/api/auth/verify', (req, res) => {
   const authHeader = req.headers['authorization'];
