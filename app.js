@@ -142,6 +142,24 @@ function populatePortfolio(data) {
   document.getElementById('stat-years').textContent = p.yearsOfLearning || '2+';
   document.getElementById('stat-projects').textContent = p.projectsCompleted || '15+';
 
+  // SEO Metadata
+  if (data.seo) {
+    if (data.seo.title) {
+      document.title = data.seo.title;
+    }
+    if (data.seo.description) {
+      let metaDesc = document.querySelector('meta[name="description"]');
+      if (metaDesc) {
+        metaDesc.setAttribute("content", data.seo.description);
+      } else {
+        metaDesc = document.createElement('meta');
+        metaDesc.name = "description";
+        metaDesc.content = data.seo.description;
+        document.head.appendChild(metaDesc);
+      }
+    }
+  }
+
   // Social Links
   const github = document.getElementById('social-github');
   const linkedin = document.getElementById('social-linkedin');
