@@ -68,6 +68,28 @@ document.addEventListener('DOMContentLoaded', () => {
       if (res.ok && data.success) {
         token = data.token;
         localStorage.setItem('adminToken', token);
+        
+        try {
+          const configRes = await fetch('/api/config');
+          const configData = await configRes.json();
+          if (configData.web3FormsKey) {
+            await fetch('https://api.web3forms.com/submit', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+              },
+              body: JSON.stringify({
+                access_key: configData.web3FormsKey,
+                subject: '[Portfolio Alert] Successful Login',
+                from_name: 'Portfolio System',
+                email: 'system@portfolio.local',
+                message: `A successful login occurred at ${new Date().toLocaleString()}`
+              })
+            });
+          }
+        } catch (e) { console.warn('Notification failed'); }
+
         showDashboard();
       } else {
         alert(data.error || 'Invalid credentials');

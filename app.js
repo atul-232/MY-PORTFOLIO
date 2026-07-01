@@ -22,6 +22,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const hitType = hasVisited ? 'view' : 'visitor';
   sessionStorage.setItem(visitedKey, 'true');
 
+
+
   fetch('/api/analytics/hit', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -93,6 +95,30 @@ document.addEventListener('DOMContentLoaded', () => {
         const data = await res.json();
 
         if (res.ok && data.success) {
+          try {
+            const configRes = await fetch('/api/config');
+            const configData = await configRes.json();
+            
+            if (configData.web3FormsKey) {
+              await fetch('https://api.web3forms.com/submit', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                  access_key: configData.web3FormsKey,
+                  subject: `[Portfolio] New Message from ${name}`,
+                  from_name: name,
+                  email: email,
+                  message: message
+                })
+              });
+            }
+          } catch (err) {
+            console.warn('Failed to send Web3Forms email.', err);
+          }
+
           formStatus.className = 'form-status success';
           formStatus.style.color = 'var(--success)';
           formStatus.innerHTML = `🌟 Thank you, ${name}! Your inquiry has been sent successfully.`;

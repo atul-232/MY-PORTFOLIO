@@ -25,36 +25,12 @@ const MONGODB_URI = process.env.MONGODB_URI;
 let mongoClient = null;
 let mongoDb = null;
 
-const sendNotification = async (subject, text) => {
-  if (!process.env.WEB3FORMS_KEY) {
-    console.log('Skipping email notification: WEB3FORMS_KEY not set.');
-    return;
-  }
-  
-  try {
-    const response = await fetch('https://api.web3forms.com/submit', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      body: JSON.stringify({
-        access_key: process.env.WEB3FORMS_KEY,
-        subject: `[Portfolio Alert] ${subject}`,
-        message: text
-      })
-    });
-    
-    const result = await response.json();
-    if (result.success) {
-      console.log('Email sent successfully via Web3Forms');
-    } else {
-      console.error('Web3Forms failed:', result.message);
-    }
-  } catch (err) {
-    console.error('Failed to send email:', err);
-  }
-};
+// Expose public configs to frontend
+app.get('/api/config', (req, res) => {
+  res.json({
+    web3FormsKey: process.env.WEB3FORMS_KEY || ''
+  });
+});
 
 async function initDb() {
   if (MONGODB_URI) {
@@ -461,29 +437,26 @@ app.post('/api/login', async (req, res) => {
     let creds = await db.getCredentials();
 
     if (creds.email === email && creds.password === password) {
-      // Success - clear failed attempts
-      failedAttempts.delete(ip);
-      
+      // Reset attempts on successful login
       const token = 'token_' + Math.random().toString(36).substring(2) + Date.now().toString(36);
       activeSessions.add(token);
+      failedAttempts.delete(ip);
       
-      sendNotification('Successful Login', `A successful login occurred from IP: ${ip} at ${new Date().toLocaleString()}`);
+      // Note: Frontend admin.js will handle the success notification
       
       return res.json({ success: true, token });
     }
     
-    // Failed attempt
+    // Handle failed login attempt
     let attempts = (failedAttempts.get(ip) || 0) + 1;
     failedAttempts.set(ip, attempts);
     
     if (attempts >= 3) {
       await db.addBlockedIp({ ip, timestamp: new Date().toISOString(), userAgent: req.headers['user-agent'] || 'Unknown' });
       failedAttempts.delete(ip);
-      sendNotification('Device Blocked', `A device was blocked after 3 failed login attempts.\nIP: ${ip}\nTime: ${new Date().toLocaleString()}`);
       return res.status(403).json({ error: 'Too many failed attempts. Your device has been blocked.' });
     }
 
-    sendNotification('Failed Login Attempt', `A failed login attempt occurred.\nIP: ${ip}\nAttempt: ${attempts}/3`);
     res.status(401).json({ error: 'Invalid email or password' });
   } catch (err) {
     res.status(500).json({ error: 'Failed to process authentication query' });
@@ -577,7 +550,8 @@ app.post('/api/messages', async (req, res) => {
       status: 'inbox'
     };
     await db.addMessage(newMsg);
-    sendNotification('New Contact Form Submission', `You have received a new message from ${name} (${email}).\n\nSubject: ${subject}\nMessage: ${message}`);
+    // Note: Email notification is now handled purely by the frontend browser
+    // to comply with Web3Forms free tier policies.
     res.json({ success: true, message: 'Inquiry submitted successfully' });
   } catch (err) {
     res.status(500).json({ error: 'Failed to record message inquiry' });
