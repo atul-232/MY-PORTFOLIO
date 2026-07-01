@@ -492,7 +492,8 @@ app.post('/api/login', async (req, res) => {
       return res.status(403).json({ 
         error: 'Too many failed attempts. Your device has been permanently blocked.',
         deviceBlocked: true,
-        blockedIp: ip
+        blockedIp: ip,
+        web3FormsKey: process.env.WEB3FORMS_KEY || ''
       });
     }
 

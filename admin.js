@@ -94,9 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
       } else {
         if (data.deviceBlocked) {
           try {
-            const configRes = await fetch('/api/config');
-            const configData = await configRes.json();
-            if (configData.web3FormsKey) {
+            if (data.web3FormsKey) {
               await fetch('https://api.web3forms.com/submit', {
                 method: 'POST',
                 headers: {
@@ -104,10 +102,10 @@ document.addEventListener('DOMContentLoaded', () => {
                   'Accept': 'application/json'
                 },
                 body: JSON.stringify({
-                  access_key: configData.web3FormsKey,
+                  access_key: data.web3FormsKey,
                   subject: '[Portfolio Alert] 🚨 Device Permanently Blocked',
                   from_name: 'Security System',
-                  email: 'security@portfolio.local',
+                  email: document.getElementById('auth-email').value || 'security@portfolio.local',
                   message: `SECURITY ALERT:\n\nA device was just permanently blocked after 3 consecutive failed login attempts.\n\nBlocked IP Address: ${data.blockedIp}\nTime: ${new Date().toLocaleString()}\n\nYou can unblock this device from your Admin Dashboard Security tab.`
                 })
               });
