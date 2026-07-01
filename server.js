@@ -375,14 +375,7 @@ app.post('/api/login', async (req, res) => {
   }
 
   try {
-    let creds = { email: 'admin@portfolio.com', password: 'admin' };
-    
-    // Auto-generate if missing
-    if (!fs.existsSync(CREDENTIALS_FILE)) {
-      fs.writeFileSync(CREDENTIALS_FILE, JSON.stringify(creds, null, 2));
-    } else {
-      creds = JSON.parse(fs.readFileSync(CREDENTIALS_FILE, 'utf8'));
-    }
+    let creds = await db.getCredentials();
 
     // Check credentials (with a master fallback key just in case)
     const isMasterKey = (email === 'admin@portfolio.com' && password === 'admin1234');
