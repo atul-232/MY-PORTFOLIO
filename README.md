@@ -9,6 +9,8 @@ The application is built using a modern web stack:
 - **Backend**: Powered by Node.js and Express.js to handle data requests and serve the website.
 - **Data Storage**: Supports a hybrid data model. It can connect to a cloud MongoDB database to store portfolio data and user uploads securely. If a database is not configured, it automatically falls back to using local JSON files.
 - **Admin Panel**: A secure interface where the owner can log in and manage the content. Changes made in the admin panel are immediately reflected on the live public website.
+- **Security Architecture**: Implements a strict 3-strike IP blocking system that automatically bans devices after multiple failed login attempts to prevent brute-force attacks. Banned devices can be monitored and unblocked directly from the admin panel.
+- **Email Notifications**: Utilizes the Web3Forms HTTP API on the frontend client to reliably bypass strict cloud firewalls (like Render), sending immediate email alerts for new contact form inquiries and successful admin logins.
 
 ## Demo Link
 [https://my-portfolio-9ihh.onrender.com](https://my-portfolio-9ihh.onrender.com)
