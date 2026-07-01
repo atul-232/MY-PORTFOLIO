@@ -59,7 +59,8 @@
   </header>
 
   <!-- Hero Section -->
-  <section id="home" class="section hero-section">
+  <section class="section hero-section" id="hero">
+    <div class="animated-bg"></div>
     <div class="container hero-grid">
       <div class="hero-content">
         <span class="hero-welcome-badge">
@@ -113,12 +114,17 @@
   </section>
 
   <!-- About, Skills & Metrics Section -->
-  <section id="about" class="section section-bg">
+  <section class="section section-bg" id="about">
     <div class="container">
+      <h2 class="section-title reveal">About Me</h2>
+      <p class="section-subtitle reveal" style="max-width: 800px;">
+        Get to know me better, my technical skills, and some cool statistics about my journey so far.
+      </p>
+
+      <!-- Main About Grid -->
       <div class="about-skills-grid">
-        
-        <!-- About Box Card -->
-        <div class="card">
+        <!-- Bio & Details Card -->
+        <div class="card reveal" id="about-card">
           <h2 class="section-title" style="font-size: 32px; margin-bottom: 24px;">About Me</h2>
           <p class="proj-card-desc text-clamp" id="about-bio" style="margin-bottom: 0;">
             I'm a passionate developer skilled in building web applications with modern technologies. I love working on AI/ML projects and exploring new tech stacks.
@@ -147,7 +153,7 @@
         </div>
 
         <!-- Skills list Matrix Card -->
-        <div class="card" id="skills">
+        <div class="card reveal" id="skills">
           <h2 class="section-title" style="font-size: 32px; margin-bottom: 24px;">Skills</h2>
           <div id="skills-matrix-wrapper" class="skills-scroll-area">
             <!-- Dynamically Populated -->
@@ -251,14 +257,16 @@
   </section>
 
   <!-- Experience & Education Section -->
-  <section id="journey" class="section section-bg">
+  <section class="section" id="journey">
     <div class="container">
-      <h2 class="section-title text-center">My Journey</h2>
-      <p class="section-subtitle text-center mx-auto" style="max-width: 600px; margin-bottom: 0;">A detailed overview of my professional work experience and academic milestones.</p>
+      <h2 class="section-title text-center reveal">My Journey</h2>
+      <p class="section-subtitle text-center reveal" style="margin: 0 auto 50px auto;">
+        The path I've taken so far, from education to real-world experience.
+      </p>
       
       <div class="journey-grid">
         <!-- Work Experience Column -->
-        <div class="card">
+        <div class="card reveal">
           <div class="journey-section-heading">
             <div class="journey-section-icon exp-icon">
               <i class="fa-solid fa-briefcase"></i>
@@ -273,7 +281,7 @@
         </div>
         
         <!-- Education Column -->
-        <div class="card">
+        <div class="card reveal">
           <div class="journey-section-heading">
             <div class="journey-section-icon edu-icon">
               <i class="fa-solid fa-graduation-cap"></i>
@@ -294,8 +302,8 @@
     <div class="container">
       <div class="projects-header-row">
         <div>
-          <h2 class="section-title">Featured Projects</h2>
-          <p class="section-subtitle" style="margin-bottom: 0;">A curated selection of engineering solutions I've built.</p>
+          <h2 class="section-title reveal">Featured Projects</h2>
+          <p class="section-subtitle reveal" style="margin-bottom: 0;">A curated selection of engineering solutions I've built.</p>
         </div>
         <a href="#contact" class="btn btn-secondary btn-sm">
           <span>View All Projects</span> <i class="fa-solid fa-arrow-right"></i>
@@ -309,10 +317,12 @@
   </section>
 
   <!-- Certifications Section -->
-  <section id="certifications" class="section section-bg">
+  <section class="section" id="certifications">
     <div class="container">
-      <h2 class="section-title text-center">Certifications & Credentials</h2>
-      <p class="section-subtitle text-center mx-auto" style="max-width: 600px; margin-bottom: 0;">Professional certifications and training credentials I've earned.</p>
+      <h2 class="section-title text-center reveal">Certifications & Credentials</h2>
+      <p class="section-subtitle text-center reveal" style="margin: 0 auto 50px auto;">
+        Professional certificates and ongoing coursework I've completed to level up my knowledge.
+      </p>
       <div class="certs-grid" id="certs-grid">
         <!-- Dynamically Populated -->
       </div>
@@ -320,10 +330,12 @@
   </section>
 
   <!-- Achievements Section -->
-  <section id="achievements" class="section">
+  <section class="section section-bg" id="achievements">
     <div class="container">
-      <h2 class="section-title text-center">Awards & Achievements</h2>
-      <p class="section-subtitle text-center mx-auto" style="max-width: 600px; margin-bottom: 0;">Recognitions and milestones from competitions, hackathons, and more.</p>
+      <h2 class="section-title text-center reveal">Awards & Achievements</h2>
+      <p class="section-subtitle text-center reveal" style="margin: 0 auto 50px auto;">
+        Recognitions and milestones from competitions, hackathons, and more.
+      </p>
       <div class="achievements-grid" id="achievements-grid">
         <!-- Dynamically Populated -->
       </div>
@@ -331,10 +343,10 @@
   </section>
 
   <!-- Contact Form Section -->
-  <section id="contact" class="section">
+  <section class="section" id="contact">
     <div class="container">
-      <h2 class="section-title text-center">Let's Connect</h2>
-      <p class="section-subtitle text-center mx-auto">Feel free to reach out for internship proposals or general software developer inquiries.</p>
+      <h2 class="section-title text-center reveal">Let's Connect</h2>
+      <p class="section-subtitle text-center mx-auto reveal">Feel free to reach out for internship proposals or general software developer inquiries.</p>
       
       <div class="contact-form-layout">
         <!-- Left details card -->
@@ -355,7 +367,7 @@
         </div>
 
         <!-- Contact inputs form box -->
-        <div class="contact-form-card-box">
+        <div class="contact-form-card-box reveal">
           <form id="portfolio-contact-form">
             <div class="contact-group-row">
               <div class="form-group-field">

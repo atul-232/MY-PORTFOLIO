@@ -188,11 +188,17 @@ function populatePortfolio(data) {
   }
 
   const aboutBio = document.getElementById('about-bio');
-  aboutBio.textContent = p.summary || p.bio || '';
-  
+  const dsaEl = document.getElementById('box-dsa');
+  if (dsaEl) dsaEl.textContent = p.dsaSolved || '0';
+
+  // Initialize Read More toggles and animations
   setTimeout(() => {
     initReadMore();
+    initAnimations();
   }, 100);
+
+  aboutBio.textContent = p.summary || p.bio || '';
+  
   document.getElementById('info-location').textContent = p.location || 'India';
   document.getElementById('info-education').textContent = p.educationBrief || 'B.Com (Hons)';
   document.getElementById('info-email').textContent = p.email || '';
@@ -638,4 +644,38 @@ function initReadMore() {
       el.parentNode.insertBefore(btn, el.nextSibling);
     }
   });
+}
+
+function initAnimations() {
+  // 1. Scroll Reveal Observer
+  const revealElements = document.querySelectorAll('.reveal');
+  const revealOptions = {
+    threshold: 0.1,
+    rootMargin: "0px 0px -50px 0px"
+  };
+
+  const revealOnScroll = new IntersectionObserver(function(entries, observer) {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) {
+        return;
+      } else {
+        entry.target.classList.add('visible');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, revealOptions);
+
+  revealElements.forEach(el => revealOnScroll.observe(el));
+
+  // 2. Avatar Flip Animation
+  const avatar = document.getElementById('hero-avatar');
+  if (avatar) {
+    avatar.style.cursor = 'pointer';
+    avatar.addEventListener('click', () => {
+      avatar.classList.remove('flip-animation');
+      // Trigger reflow
+      void avatar.offsetWidth;
+      avatar.classList.add('flip-animation');
+    });
+  }
 }
