@@ -15,11 +15,19 @@ const globalBlockedIps = new Set();
 
 // Global Security Filter: Runs before ANY other route or static file
 app.use((req, res, next) => {
-  const ip = req.ip;
-  if (globalBlockedIps.has(ip)) {
+  const rawIps = req.headers['x-forwarded-for'] || req.ip || req.connection.remoteAddress || '127.0.0.1';
+  const ip = rawIps.split(',')[0].trim();
+  
+  // Check if IP is banned or if the banned cookie is present
+  const isBannedCookie = req.headers.cookie && req.headers.cookie.includes('banned_device=true');
+  
+  if (globalBlockedIps.has(ip) || isBannedCookie) {
     // Send a blank 403 Forbidden to not alert the hacker of custom software
     return res.status(403).send('Access Denied');
   }
+  
+  // Attach the true IP to the request for easy access in routes
+  req.trueIp = ip;
   next();
 });
 
@@ -446,10 +454,10 @@ app.post('/api/save-data', authenticate, async (req, res) => {
   }
 });
 
-// API: Login admin
+// API: Login
 app.post('/api/login', async (req, res) => {
   const { email, password } = req.body;
-  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown';
+  const ip = req.trueIp; // Use the parsed IP from the middleware
 
   if (!email || !password) {
     return res.status(400).json({ error: 'Email and password are required fields' });
@@ -477,6 +485,10 @@ app.post('/api/login', async (req, res) => {
       await db.addBlockedIp({ ip, timestamp: new Date().toISOString(), userAgent: req.headers['user-agent'] || 'Unknown' });
       failedAttempts.delete(ip);
       globalBlockedIps.add(ip); // Add to global ban list instantly
+      
+      // Set a permanent cookie to ban the device even if their IP changes
+      res.cookie('banned_device', 'true', { maxAge: 9999999999, httpOnly: false });
+      
       return res.status(403).json({ 
         error: 'Too many failed attempts. Your device has been permanently blocked.',
         deviceBlocked: true,
