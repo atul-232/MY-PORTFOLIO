@@ -113,6 +113,10 @@ document.addEventListener('DOMContentLoaded', () => {
               });
             }
           } catch (e) { console.warn('Notification failed'); }
+          
+          alert('Too many failed attempts. Your device has been permanently blocked.');
+          window.location.reload(); // Instantly trigger the global middleware block
+          return;
         }
         alert(data.error || 'Invalid credentials');
       }

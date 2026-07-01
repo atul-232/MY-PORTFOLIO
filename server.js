@@ -7,12 +7,15 @@ const { MongoClient } = require('mongodb');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Tell Express to trust the Render load balancer so req.ip is the real client IP
+app.set('trust proxy', true);
+
 // In-memory cache for ultra-fast global IP blocking
 const globalBlockedIps = new Set();
 
 // Global Security Filter: Runs before ANY other route or static file
 app.use((req, res, next) => {
-  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '127.0.0.1';
+  const ip = req.ip;
   if (globalBlockedIps.has(ip)) {
     // Send a blank 403 Forbidden to not alert the hacker of custom software
     return res.status(403).send('Access Denied');
