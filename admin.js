@@ -555,6 +555,7 @@ async function loadDataset() {
     renderEducationTimeline();
     renderCertificatesList();
     renderAchievementsList();
+    fetchBlockedDevices();
   } catch (err) {
     console.error('loadDataset failed with error:', err);
     alert('Failed to connect and read portfolio database.');
@@ -1979,6 +1980,68 @@ async function deleteAnalyticsLog(time) {
     }
   }
 }
+
+// Security: Fetch and render blocked devices
+async function fetchBlockedDevices() {
+  try {
+    const res = await fetch('/api/settings/blocked', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (res.ok) {
+      const ips = await res.json();
+      renderBlockedDevices(ips);
+    }
+  } catch (e) {
+    console.error('Failed to load blocked devices');
+  }
+}
+
+function renderBlockedDevices(ips) {
+  const tbody = document.getElementById('blocked-devices-list');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+  
+  if (!ips || ips.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="3" style="padding: 15px; text-align: center; font-size: 14px; color: var(--text-small);">No devices are currently blocked.</td></tr>';
+    return;
+  }
+  
+  ips.forEach(device => {
+    const tr = document.createElement('tr');
+    tr.style.borderBottom = '1px solid var(--border)';
+    tr.innerHTML = `
+      <td style="padding: 15px; font-size: 14px; color: var(--text-paragraph); font-family: monospace;">${device.ip}</td>
+      <td style="padding: 15px; font-size: 14px; color: var(--text-small);">${new Date(device.timestamp).toLocaleString()}</td>
+      <td style="padding: 15px;">
+        <button class="btn btn-sm" style="background: var(--bg-hover); color: var(--text-main);" onclick="unblockDevice('${device.ip}')">Unblock</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+window.unblockDevice = async function(ip) {
+  if (!confirm(`Are you sure you want to unblock IP: ${ip}?`)) return;
+  
+  try {
+    const res = await fetch('/api/settings/unblock', {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ ip })
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      fetchBlockedDevices(); // Refresh list
+    } else {
+      alert(data.error || 'Failed to unblock device');
+    }
+  } catch {
+    alert('Failed to connect to server');
+  }
+};
 
 async function saveCompileDatabaseSilently() {
   collectFormInputs();

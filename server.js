@@ -11,12 +11,14 @@ const CREDENTIALS_FILE = path.join(__dirname, 'credentials.json');
 const MESSAGES_FILE = path.join(__dirname, 'messages.json');
 const VISITORS_FILE = path.join(__dirname, 'visitors.json');
 const UPLOADS_DIR = path.join(__dirname, 'uploads');
+const BLOCKED_FILE = path.join(__dirname, 'blocked_ips.json');
 
 // Ensure database files exist (fallback layer)
 if (!fs.existsSync(MESSAGES_FILE)) fs.writeFileSync(MESSAGES_FILE, '[]');
 if (!fs.existsSync(VISITORS_FILE)) fs.writeFileSync(VISITORS_FILE, '[]');
 if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR);
 if (!fs.existsSync(CREDENTIALS_FILE)) fs.writeFileSync(CREDENTIALS_FILE, JSON.stringify({ email: "admin@portfolio.com", password: "admin" }, null, 2));
+if (!fs.existsSync(BLOCKED_FILE)) fs.writeFileSync(BLOCKED_FILE, '[]');
 
 // Database Provider Configuration
 const MONGODB_URI = process.env.MONGODB_URI;
@@ -250,11 +252,53 @@ const db = {
       };
     }
     return null;
+  },
+
+  getBlockedIps: async () => {
+    if (mongoDb) {
+      return await mongoDb.collection('blocked_ips').find({}).toArray();
+    }
+    try {
+      if (!fs.existsSync(BLOCKED_FILE)) return [];
+      return JSON.parse(fs.readFileSync(BLOCKED_FILE, 'utf8') || '[]');
+    } catch { return []; }
+  },
+
+  saveBlockedIps: async (ips) => {
+    if (mongoDb) {
+      await mongoDb.collection('blocked_ips').deleteMany({});
+      if (ips.length > 0) {
+        await mongoDb.collection('blocked_ips').insertMany(ips);
+      }
+      return;
+    }
+    fs.writeFileSync(BLOCKED_FILE, JSON.stringify(ips, null, 2));
+  },
+
+  addBlockedIp: async (ipData) => {
+    if (mongoDb) {
+      await mongoDb.collection('blocked_ips').insertOne(ipData);
+      return;
+    }
+    const ips = await db.getBlockedIps();
+    ips.push(ipData);
+    await db.saveBlockedIps(ips);
+  },
+
+  removeBlockedIp: async (ip) => {
+    if (mongoDb) {
+      await mongoDb.collection('blocked_ips').deleteOne({ ip });
+      return;
+    }
+    let ips = await db.getBlockedIps();
+    ips = ips.filter(b => b.ip !== ip);
+    await db.saveBlockedIps(ips);
   }
 };
 
 // Session memory store
 const activeSessions = new Set();
+const failedAttempts = new Map(); // Track failed login attempts by IP
 
 // Authentication middleware
 const authenticate = (req, res, next) => {
@@ -370,21 +414,40 @@ app.post('/api/save-data', authenticate, async (req, res) => {
 // API: Login admin
 app.post('/api/login', async (req, res) => {
   const { email, password } = req.body;
+  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown';
+
   if (!email || !password) {
     return res.status(400).json({ error: 'Email and password are required fields' });
   }
 
   try {
+    // Check if IP is blocked
+    const blockedList = await db.getBlockedIps();
+    if (blockedList.some(b => b.ip === ip)) {
+      return res.status(403).json({ error: 'Your device has been blocked due to multiple failed login attempts. Contact the administrator.' });
+    }
+
     let creds = await db.getCredentials();
 
-    // Check credentials (with a master fallback key just in case)
-    const isMasterKey = (email === 'admin@portfolio.com' && password === 'admin1234');
-    
-    if ((creds.email === email && creds.password === password) || isMasterKey) {
+    if (creds.email === email && creds.password === password) {
+      // Success - clear failed attempts
+      failedAttempts.delete(ip);
+      
       const token = 'token_' + Math.random().toString(36).substring(2) + Date.now().toString(36);
       activeSessions.add(token);
       return res.json({ success: true, token });
     }
+    
+    // Failed attempt
+    let attempts = (failedAttempts.get(ip) || 0) + 1;
+    failedAttempts.set(ip, attempts);
+    
+    if (attempts >= 3) {
+      await db.addBlockedIp({ ip, timestamp: new Date().toISOString(), userAgent: req.headers['user-agent'] || 'Unknown' });
+      failedAttempts.delete(ip);
+      return res.status(403).json({ error: 'Too many failed attempts. Your device has been blocked.' });
+    }
+
     res.status(401).json({ error: 'Invalid email or password' });
   } catch (err) {
     res.status(500).json({ error: 'Failed to process authentication query' });
@@ -420,9 +483,34 @@ app.post('/api/settings/security', authenticate, async (req, res) => {
   }
   try {
     await db.saveCredentials({ email, password });
+    // Invalidate all active sessions to force re-login
+    activeSessions.clear();
     res.json({ success: true, message: 'Credentials updated successfully' });
   } catch {
     res.status(500).json({ error: 'Failed to update credentials database' });
+  }
+});
+
+// API: Get blocked devices
+app.get('/api/settings/blocked', authenticate, async (req, res) => {
+  try {
+    const ips = await db.getBlockedIps();
+    res.json(ips);
+  } catch {
+    res.status(500).json({ error: 'Failed to get blocked devices' });
+  }
+});
+
+// API: Unblock device
+app.post('/api/settings/unblock', authenticate, async (req, res) => {
+  const { ip } = req.body;
+  if (!ip) return res.status(400).json({ error: 'IP address is required' });
+  
+  try {
+    await db.removeBlockedIp(ip);
+    res.json({ success: true, message: 'Device unblocked' });
+  } catch {
+    res.status(500).json({ error: 'Failed to unblock device' });
   }
 });
 
