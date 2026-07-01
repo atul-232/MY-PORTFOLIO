@@ -3,11 +3,6 @@ const fs = require('fs');
 const path = require('path');
 const cors = require('cors');
 const { MongoClient } = require('mongodb');
-const nodemailer = require('nodemailer');
-const dns = require('dns');
-
-// Force IPv4 for external connections to fix Render ENETUNREACH IPv6 issue
-dns.setDefaultResultOrder('ipv4first');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -30,33 +25,35 @@ const MONGODB_URI = process.env.MONGODB_URI;
 let mongoClient = null;
 let mongoDb = null;
 
-const sendNotification = (subject, text) => {
-  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-    console.log('Skipping email notification: EMAIL_USER or EMAIL_PASS not set.');
+const sendNotification = async (subject, text) => {
+  if (!process.env.WEB3FORMS_KEY) {
+    console.log('Skipping email notification: WEB3FORMS_KEY not set.');
     return;
   }
   
-  const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 587,
-    secure: false, // true for 465, false for other ports
-    requireTLS: true,
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS
+  try {
+    const response = await fetch('https://api.web3forms.com/submit', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({
+        access_key: process.env.WEB3FORMS_KEY,
+        subject: `[Portfolio Alert] ${subject}`,
+        message: text
+      })
+    });
+    
+    const result = await response.json();
+    if (result.success) {
+      console.log('Email sent successfully via Web3Forms');
+    } else {
+      console.error('Web3Forms failed:', result.message);
     }
-  });
-
-  const mailOptions = {
-    from: process.env.EMAIL_USER,
-    to: process.env.EMAIL_USER,
-    subject: `[Portfolio Alert] ${subject}`,
-    text
-  };
-  
-  transporter.sendMail(mailOptions)
-    .then(info => console.log('Email sent successfully:', info.response))
-    .catch(err => console.error('Failed to send email:', err));
+  } catch (err) {
+    console.error('Failed to send email:', err);
+  }
 };
 
 async function initDb() {
@@ -490,48 +487,6 @@ app.post('/api/login', async (req, res) => {
     res.status(401).json({ error: 'Invalid email or password' });
   } catch (err) {
     res.status(500).json({ error: 'Failed to process authentication query' });
-  }
-});
-
-// TEMPORARY DEBUG ENDPOINT FOR EMAIL
-app.get('/api/test-email-config', async (req, res) => {
-  const debugInfo = {
-    userSet: !!process.env.EMAIL_USER,
-    userValue: process.env.EMAIL_USER ? process.env.EMAIL_USER.substring(0, 3) + '***' : 'undefined',
-    passSet: !!process.env.EMAIL_PASS,
-    passLength: process.env.EMAIL_PASS ? process.env.EMAIL_PASS.length : 0,
-    testResult: 'Pending'
-  };
-
-  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-    debugInfo.testResult = 'Failed: Environment variables are missing';
-    return res.json(debugInfo);
-  }
-
-  try {
-    const transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 587,
-      secure: false,
-      requireTLS: true,
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-      }
-    });
-
-    const info = await transporter.sendMail({
-      from: process.env.EMAIL_USER,
-      to: process.env.EMAIL_USER,
-      subject: '[Diagnostic Test] Email System',
-      text: 'If you receive this, the server can successfully send emails.'
-    });
-
-    debugInfo.testResult = 'Success: ' + info.response;
-    res.json(debugInfo);
-  } catch (err) {
-    debugInfo.testResult = 'Error: ' + err.message;
-    res.json(debugInfo);
   }
 });
 
