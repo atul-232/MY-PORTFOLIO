@@ -145,13 +145,11 @@ function populatePortfolio(data) {
   // Social Links
   const github = document.getElementById('social-github');
   const linkedin = document.getElementById('social-linkedin');
-  const twitter = document.getElementById('social-twitter');
   const email = document.getElementById('social-email');
   const downloadCV = document.getElementById('nav-download-cv');
 
   if (p.github) github.href = p.github; else github.style.display = 'none';
   if (p.linkedin) linkedin.href = p.linkedin; else linkedin.style.display = 'none';
-  if (p.twitter) twitter.href = p.twitter; else twitter.style.display = 'none';
   if (p.email) email.href = `mailto:${p.email}`; else email.style.display = 'none';
   
   const leetcodeIcon = document.getElementById('social-leetcode');
