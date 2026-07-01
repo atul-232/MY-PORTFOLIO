@@ -6,6 +6,20 @@ const { MongoClient } = require('mongodb');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// In-memory cache for ultra-fast global IP blocking
+const globalBlockedIps = new Set();
+
+// Global Security Filter: Runs before ANY other route or static file
+app.use((req, res, next) => {
+  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '127.0.0.1';
+  if (globalBlockedIps.has(ip)) {
+    // Send a blank 403 Forbidden to not alert the hacker of custom software
+    return res.status(403).send('Access Denied');
+  }
+  next();
+});
+
 const DATA_FILE = path.join(__dirname, 'data.json');
 const CREDENTIALS_FILE = path.join(__dirname, 'credentials.json');
 const MESSAGES_FILE = path.join(__dirname, 'messages.json');
@@ -43,12 +57,23 @@ async function initDb() {
       
       // Perform automated data migration if MongoDB collections are empty
       await migrateLocalToMongo();
+
+      const blockedDocs = await mongoDb.collection('blocked_ips').find({}).toArray();
+      blockedDocs.forEach(doc => globalBlockedIps.add(doc.ip));
+      console.log('MongoDB initialized. Active blocks:', globalBlockedIps.size);
     } catch (err) {
       console.error('Failed to connect to MongoDB Atlas, falling back to local storage:', err);
       mongoDb = null;
+      
+      const blockedLocal = await db.getBlockedIps();
+      blockedLocal.forEach(doc => globalBlockedIps.add(doc.ip));
+      console.log('Local DB initialized. Active blocks:', globalBlockedIps.size);
     }
   } else {
     console.log('No MONGODB_URI provided. Running on local JSON file storage.');
+    const blockedLocal = await db.getBlockedIps();
+    blockedLocal.forEach(doc => globalBlockedIps.add(doc.ip));
+    console.log('Local DB initialized. Active blocks:', globalBlockedIps.size);
   }
 }
 
@@ -428,12 +453,6 @@ app.post('/api/login', async (req, res) => {
   }
 
   try {
-    // Check if IP is blocked
-    const blockedList = await db.getBlockedIps();
-    if (blockedList.some(b => b.ip === ip)) {
-      return res.status(403).json({ error: 'Your device has been blocked due to multiple failed login attempts. Contact the administrator.' });
-    }
-
     let creds = await db.getCredentials();
 
     if (creds.email === email && creds.password === password) {
@@ -454,7 +473,12 @@ app.post('/api/login', async (req, res) => {
     if (attempts >= 3) {
       await db.addBlockedIp({ ip, timestamp: new Date().toISOString(), userAgent: req.headers['user-agent'] || 'Unknown' });
       failedAttempts.delete(ip);
-      return res.status(403).json({ error: 'Too many failed attempts. Your device has been blocked.' });
+      globalBlockedIps.add(ip); // Add to global ban list instantly
+      return res.status(403).json({ 
+        error: 'Too many failed attempts. Your device has been permanently blocked.',
+        deviceBlocked: true,
+        blockedIp: ip
+      });
     }
 
     res.status(401).json({ error: 'Invalid email or password' });
@@ -517,6 +541,7 @@ app.post('/api/settings/unblock', authenticate, async (req, res) => {
   
   try {
     await db.removeBlockedIp(ip);
+    globalBlockedIps.delete(ip); // Remove from global ban list
     res.json({ success: true, message: 'Device unblocked' });
   } catch {
     res.status(500).json({ error: 'Failed to unblock device' });
