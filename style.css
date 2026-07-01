@@ -485,32 +485,6 @@ a {
   position: relative;
 }
 
-.content-clamp {
-  max-height: 380px;
-  overflow: hidden;
-  position: relative;
-  transition: max-height 0.4s ease;
-}
-
-.content-clamp::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 60px;
-  background: linear-gradient(to bottom, transparent, var(--bg-card));
-  pointer-events: none;
-  transition: opacity 0.3s;
-}
-
-.content-clamp.expanded {
-  max-height: 2500px;
-}
-
-.content-clamp.expanded::after {
-  opacity: 0;
-}
 
 .text-clamp.expanded {
   -webkit-line-clamp: unset;
@@ -1076,24 +1050,29 @@ body.dark-mode .dash-table tbody tr:hover {
 }
 
 /* The vertical line track */
-.timeline-scroll-area {
+.timeline-scroll-area,
+.skills-scroll-area {
   max-height: 500px;
   overflow-y: auto;
   padding-right: 10px;
 }
 
-/* Custom Scrollbar for Timeline */
-.timeline-scroll-area::-webkit-scrollbar {
+/* Custom Scrollbar */
+.timeline-scroll-area::-webkit-scrollbar,
+.skills-scroll-area::-webkit-scrollbar {
   width: 6px;
 }
-.timeline-scroll-area::-webkit-scrollbar-track {
+.timeline-scroll-area::-webkit-scrollbar-track,
+.skills-scroll-area::-webkit-scrollbar-track {
   background: transparent;
 }
-.timeline-scroll-area::-webkit-scrollbar-thumb {
+.timeline-scroll-area::-webkit-scrollbar-thumb,
+.skills-scroll-area::-webkit-scrollbar-thumb {
   background: var(--border);
   border-radius: 10px;
 }
-.timeline-scroll-area::-webkit-scrollbar-thumb:hover {
+.timeline-scroll-area::-webkit-scrollbar-thumb:hover,
+.skills-scroll-area::-webkit-scrollbar-thumb:hover {
   background: var(--primary);
 }
 
