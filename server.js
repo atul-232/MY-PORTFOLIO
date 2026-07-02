@@ -549,7 +549,8 @@ app.post('/api/settings/security', authenticate, async (req, res) => {
     return res.status(400).json({ error: 'Password must be at least 6 characters' });
   }
   try {
-    await db.saveCredentials({ email, password });
+    const creds = await db.getCredentials();
+    await db.saveCredentials({ email, password, authenticators: creds.authenticators || [] });
     // Invalidate all active sessions to force re-login
     activeSessions.clear();
     res.json({ success: true, message: 'Credentials updated successfully' });
