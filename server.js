@@ -492,7 +492,7 @@ app.post('/api/login', async (req, res) => {
       failedAttempts.delete(ip);
       
       // Note: Frontend admin.js will handle the success notification
-      res.json({ success: true, token });
+      return res.json({ success: true, token });
     }
     
     // Handle failed login attempt

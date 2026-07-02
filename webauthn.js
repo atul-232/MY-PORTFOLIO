@@ -21,7 +21,7 @@ module.exports = function(app, db, authenticate, preAuthSessions, activeSessions
       userName: creds.email,
       attestationType: 'none',
       excludeCredentials: authenticators.map(auth => ({
-        id: Buffer.from(auth.credentialID, 'base64'),
+        id: Buffer.from(auth.credentialID, 'base64').toString('base64url'),
         type: 'public-key',
       })),
       authenticatorSelection: {
@@ -102,7 +102,7 @@ module.exports = function(app, db, authenticate, preAuthSessions, activeSessions
     const options = await generateAuthenticationOptions({
       rpID,
       allowCredentials: authenticators.map(auth => ({
-        id: Buffer.from(auth.credentialID, 'base64'),
+        id: Buffer.from(auth.credentialID, 'base64').toString('base64url'),
         type: 'public-key',
       })),
       userVerification: 'required',
@@ -164,7 +164,7 @@ module.exports = function(app, db, authenticate, preAuthSessions, activeSessions
 
         // Issue Full Auth Token!
         const fullToken = 'token_' + Math.random().toString(36).substring(2) + Date.now().toString(36);
-        activeSessions.set(fullToken, { lastActive: Date.now() });
+        activeSessions.add(fullToken);
         
         // Reset failed attempts since they fully logged in
         failedAttempts.delete(preSession.ip);
