@@ -66,7 +66,58 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = await res.json();
 
       if (res.ok && data.success) {
-        token = data.token;
+        
+        let finalToken = data.token;
+        
+        // --- BIOMETRIC STEP 2 ---
+        if (data.requireBiometric) {
+          const preToken = data.token;
+          
+          try {
+            // 1. Get Authentication Options
+            const optRes = await fetch('/api/webauthn/generate-authentication-options', {
+              headers: { 'Authorization': `Bearer ${preToken}` }
+            });
+            const optData = await optRes.json();
+            
+            if (!optRes.ok) throw new Error(optData.error || 'Failed to generate authentication options');
+
+            // 2. Prompt Fingerprint/FaceID via Browser
+            const asseResp = await SimpleWebAuthnBrowser.startAuthentication(optData);
+
+            // 3. Send Biometric Proof to Server
+            const verRes = await fetch('/api/webauthn/verify-authentication', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${preToken}`
+              },
+              body: JSON.stringify(asseResp),
+            });
+            
+            const verData = await verRes.json();
+            
+            if (verRes.ok && verData.verified) {
+              finalToken = verData.token;
+            } else {
+              if (verData.deviceBlocked) {
+                alert('Biometric verification failed. Your device has been permanently blocked.');
+                window.location.reload();
+                return;
+              }
+              throw new Error(verData.error || 'Biometric verification failed');
+            }
+          } catch (e) {
+            console.error('Biometric error:', e);
+            alert(e.message || 'Biometric authentication failed or was cancelled.');
+            
+            // To enforce the strict block even on cancel, we reload to trigger potential server blocks
+            window.location.reload();
+            return;
+          }
+        }
+
+        token = finalToken;
         localStorage.setItem('adminToken', token);
         
         try {
@@ -356,6 +407,56 @@ document.addEventListener('DOMContentLoaded', () => {
     markAsUnsaved();
     alert('SEO settings saved locally. Press Save & Compile at the bottom to publish!');
   });
+
+  // Biometric Registration
+  const btnRegisterBiometric = document.getElementById('btn-register-biometric');
+  const biometricStatus = document.getElementById('biometric-status');
+  if (btnRegisterBiometric) {
+    btnRegisterBiometric.addEventListener('click', async () => {
+      try {
+        btnRegisterBiometric.disabled = true;
+        biometricStatus.style.display = 'block';
+        biometricStatus.style.color = 'var(--text-paragraph)';
+        biometricStatus.textContent = 'Generating security options...';
+
+        const optRes = await fetch('/api/webauthn/generate-registration-options', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const optData = await optRes.json();
+        
+        if (!optRes.ok) throw new Error(optData.error || 'Failed to generate options');
+
+        biometricStatus.textContent = 'Please scan your fingerprint or Face ID...';
+        const asseResp = await SimpleWebAuthnBrowser.startRegistration(optData);
+
+        biometricStatus.textContent = 'Verifying with server...';
+        const verRes = await fetch('/api/webauthn/verify-registration', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(asseResp)
+        });
+        
+        const verData = await verRes.json();
+        
+        if (verRes.ok && verData.verified) {
+          biometricStatus.style.color = 'var(--success)';
+          biometricStatus.innerHTML = '<i class="fa-solid fa-check-circle"></i> Device successfully paired! This device will now be required for login.';
+        } else {
+          throw new Error(verData.error || 'Verification failed');
+        }
+      } catch (err) {
+        console.error('Biometric registration error:', err);
+        biometricStatus.style.color = 'var(--danger)';
+        biometricStatus.innerHTML = '<i class="fa-solid fa-times-circle"></i> ' + (err.message || 'Registration failed or was cancelled.');
+      } finally {
+        btnRegisterBiometric.disabled = false;
+      }
+    });
+  }
+
 
   // Portfolio fields changes trackers
   const trackFields = [

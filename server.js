@@ -350,6 +350,7 @@ const db = {
 
 // Session memory store
 const activeSessions = new Set();
+const preAuthSessions = new Map(); // Step 1 Biometric Pre-Auth (token -> { ip })
 const failedAttempts = new Map(); // Track failed login attempts by IP
 
 // Authentication middleware
@@ -476,14 +477,22 @@ app.post('/api/login', async (req, res) => {
     let creds = await db.getCredentials();
 
     if (creds.email === email && creds.password === password) {
-      // Reset attempts on successful login
+      // Step 1 Passed!
+      const authenticators = creds.authenticators || [];
       const token = 'token_' + Math.random().toString(36).substring(2) + Date.now().toString(36);
+      
+      if (authenticators.length > 0) {
+        // Biometrics are enabled. Require Step 2.
+        preAuthSessions.set(token, { ip });
+        return res.json({ success: true, requireBiometric: true, token });
+      }
+
+      // Biometrics not enabled yet. Full Login.
       activeSessions.add(token);
       failedAttempts.delete(ip);
       
       // Note: Frontend admin.js will handle the success notification
-      
-      return res.json({ success: true, token });
+      res.json({ success: true, token });
     }
     
     // Handle failed login attempt
@@ -994,6 +1003,9 @@ app.get('/api/leetcode/:username', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch LeetCode profile data', message: err.message });
   }
 });
+
+// Load WebAuthn API Routes
+require('./webauthn')(app, db, authenticate, preAuthSessions, activeSessions, failedAttempts, globalBlockedIps);
 
 // Fallback all other GET routes to index.html
 app.get('*', (req, res) => {

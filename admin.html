@@ -1972,6 +1972,15 @@
               <button type="submit" class="btn btn-primary" style="margin-top: 15px;">Save Settings</button>
             </form>
           </div>
+
+          <div class="card" style="max-width: 650px; margin-top: 20px;">
+            <h4 style="font-size: 16px; margin: 0 0 15px 0;">Biometric 2-Step Verification (Passkeys)</h4>
+            <p style="margin-bottom: 20px; font-size: 13px; color: var(--text-paragraph);">Protect your admin dashboard with Face ID, Touch ID, or Windows Hello. Once registered, you will be required to scan your biometric after entering your password. If a hacker guesses your password but fails the biometric scan, their device will be permanently blocked.</p>
+            <button type="button" class="btn btn-secondary" id="btn-register-biometric">
+              <i class="fa-solid fa-fingerprint"></i> Register Device
+            </button>
+            <div id="biometric-status" style="margin-top: 10px; font-size: 13px; font-weight: 500; display: none;"></div>
+          </div>
         </section>
 
       </main>
@@ -2152,6 +2161,8 @@
   <!-- Core Charts mapping library -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+  <!-- SimpleWebAuthn for Biometrics -->
+  <script src="https://unpkg.com/@simplewebauthn/browser/dist/bundle/index.umd.min.js"></script>
   <!-- Admin Panel Controller Script -->
   <script src="admin.js"></script>
 </body>
