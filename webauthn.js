@@ -21,7 +21,7 @@ module.exports = function(app, db, authenticate, preAuthSessions, activeSessions
       userName: creds.email,
       attestationType: 'none',
       excludeCredentials: authenticators.map(auth => ({
-        id: Buffer.from(auth.credentialID, 'base64').toString('base64url'),
+        id: auth.id,
         type: 'public-key',
       })),
       authenticatorSelection: {
@@ -58,12 +58,12 @@ module.exports = function(app, db, authenticate, preAuthSessions, activeSessions
       });
 
       if (verification.verified && verification.registrationInfo) {
-        const { credentialID, credentialPublicKey, counter } = verification.registrationInfo;
+        const { id, publicKey, counter } = verification.registrationInfo.credential;
         
         const authenticators = creds.authenticators || [];
         authenticators.push({
-          credentialID: Buffer.from(credentialID).toString('base64'),
-          credentialPublicKey: Buffer.from(credentialPublicKey).toString('base64'),
+          id,
+          publicKey: Buffer.from(publicKey).toString('base64'),
           counter,
         });
 
@@ -102,7 +102,7 @@ module.exports = function(app, db, authenticate, preAuthSessions, activeSessions
     const options = await generateAuthenticationOptions({
       rpID,
       allowCredentials: authenticators.map(auth => ({
-        id: Buffer.from(auth.credentialID, 'base64').toString('base64url'),
+        id: auth.id,
         type: 'public-key',
       })),
       userVerification: 'required',
@@ -129,7 +129,7 @@ module.exports = function(app, db, authenticate, preAuthSessions, activeSessions
     const body = req.body;
 
     const authenticator = authenticators.find(
-      auth => auth.credentialID === body.id
+      auth => auth.id === body.id
     );
 
     if (!authenticator) {
@@ -146,9 +146,9 @@ module.exports = function(app, db, authenticate, preAuthSessions, activeSessions
         expectedChallenge,
         expectedOrigin: origin,
         expectedRPID: rpID,
-        authenticator: {
-          credentialID: Buffer.from(authenticator.credentialID, 'base64'),
-          credentialPublicKey: Buffer.from(authenticator.credentialPublicKey, 'base64'),
+        credential: {
+          id: authenticator.id,
+          publicKey: Buffer.from(authenticator.publicKey, 'base64'),
           counter: authenticator.counter,
         },
         requireUserVerification: true,
